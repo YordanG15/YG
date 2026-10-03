@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Organizador para lavamanos en 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Architects+Daughter&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E3E7E2; --panel:#F3F5F1; --ink:#18211D; --muted:#56615B; --line:#BCC5BE;
+  --blue:#23466A; --pine:#B7843F; --pencil:#F1C232; --pencil-ink:#2E2400; --scene:#DCE1DB;
+  --sans:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --hand:"Architects Daughter", "Comic Sans MS", "Segoe Print", cursive;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151A18; --panel:#1E2421; --ink:#E3E9E5; --muted:#9AA59F; --line:#36413B;
+    --blue:#8DB3DB; --pine:#D7A965; --pencil:#E4B726; --pencil-ink:#221B00; --scene:#1B211F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151A18; --panel:#1E2421; --ink:#E3E9E5; --muted:#9AA59F; --line:#36413B;
+  --blue:#8DB3DB; --pine:#D7A965; --pencil:#E4B726; --pencil-ink:#221B00; --scene:#1B211F;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45}
+a{color:var(--blue)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--pencil);outline-offset:2px}
+
+header.top{padding:22px clamp(16px,3vw,36px) 14px;display:flex;flex-wrap:wrap;gap:8px 28px;align-items:flex-end;justify-content:space-between}
+header.top h1{margin:0;font-weight:800;font-stretch:78%;font-size:clamp(30px,4.6vw,54px);line-height:.95;letter-spacing:-.01em;max-width:14ch}
+header.top p{margin:0;max-width:58ch;color:var(--muted)}
+
+.workbench{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px;padding:0 clamp(16px,3vw,36px) 28px}
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;align-self:start;position:sticky;top:12px}
+.controls h2{font-size:17px;font-weight:700;margin:18px 0 8px}
+.controls h2:first-child{margin-top:0}
+.field{display:grid;grid-template-columns:1fr 78px;gap:4px 10px;align-items:center;margin-bottom:10px}
+.field label{font-weight:600;font-size:14px}
+.field input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--blue)}
+.field input[type=number]{width:78px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;background:var(--paper);text-align:right}
+.unit{font-size:12px;color:var(--muted)}
+.stepper{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.stepper span.lbl{font-weight:600;font-size:14px}
+.stepper .ctl{display:flex;align-items:center;gap:6px}
+.stepper button{width:30px;height:30px;border:1px solid var(--line);background:var(--paper);border-radius:4px;cursor:pointer}
+.stepper output{min-width:22px;text-align:center;font-weight:700}
+.mats{display:grid;gap:6px}
+.mat{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:5px;padding:8px;cursor:pointer;background:var(--paper)}
+.mat input{margin-top:3px;accent-color:var(--blue)}
+.mat b{display:block;font-size:14px}
+.mat small{color:var(--muted);font-size:12px;line-height:1.3;display:block}
+.mat:has(input:checked){border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.swatch{width:16px;height:16px;border-radius:3px;flex:0 0 auto;margin-top:2px;border:1px solid rgba(0,0,0,.2)}
+select{width:100%;padding:6px;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+.toggle{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px;cursor:pointer}
+.toggle input{accent-color:var(--blue);width:16px;height:16px}
+details.hueco{margin:4px 0 6px;border:1px dashed var(--line);border-radius:5px;padding:6px 8px}
+details.hueco summary{cursor:pointer;font-size:14px;font-weight:600}
+.hueco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.hueco-grid label{font-size:12px;color:var(--muted);display:grid;gap:2px}
+.hueco-grid input{width:100%;padding:4px;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600}
+.btn.ghost{background:transparent;color:var(--ink)}
+.warn{font-size:12.5px;background:color-mix(in srgb,var(--pencil) 30%,transparent);border-left:3px solid var(--pencil);padding:6px 8px;margin-top:8px;border-radius:0 4px 4px 0}
+.warn:empty{display:none}
+
+.stage{min-width:0;display:grid;gap:14px}
+.stage-grid{display:grid;grid-template-columns:210px minmax(0,1fr) 210px;gap:12px;min-width:0}
+.stage-grid.no-plans{grid-template-columns:minmax(0,1fr)}
+.stage-grid.no-plans .plans{display:none}
+.plans{display:grid;gap:10px;align-content:start;min-width:0}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 8px 4px;overflow-x:auto}
+.sheet h3{margin:0 0 2px;font-size:13px;font-weight:700;color:var(--blue)}
+.sheet svg{display:block;width:100%;height:auto}
+svg .obj{fill:color-mix(in srgb,var(--pine) 22%,transparent);stroke:var(--blue);stroke-width:1}
+svg .obj2{fill:color-mix(in srgb,var(--pine) 40%,transparent);stroke:var(--blue);stroke-width:1}
+svg .hid{fill:none;stroke:var(--blue);stroke-width:.8;stroke-dasharray:3 2;opacity:.7}
+svg .dim line,svg .dim path{stroke:var(--ink);stroke-width:.7;fill:none}
+svg .ext{stroke:var(--muted);stroke-width:.5}
+svg text{font-family:var(--hand);fill:var(--ink);font-size:10px}
+svg text.lbl{font-family:var(--sans);font-size:9px;fill:var(--muted)}
+svg .waste{fill:repeating-linear-gradient(45deg,#999 0 2px,transparent 2px 4px);fill:color-mix(in srgb,var(--muted) 18%,transparent);stroke:var(--muted);stroke-width:.5;stroke-dasharray:2 2}
+
+.viewport{position:relative;height:min(66vh,600px);min-height:360px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--scene)}
+.viewport canvas{display:block;width:100%;height:100%;touch-action:none}
+.vp-title{position:absolute;left:12px;top:10px;right:12px;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
+.vp-title strong{font-stretch:85%;font-size:clamp(18px,2.4vw,26px);font-weight:800;background:color-mix(in srgb,var(--scene) 80%,transparent);padding:2px 6px;border-radius:3px}
+.chip{align-self:flex-start;background:var(--pencil);color:var(--pencil-ink);font-weight:700;font-size:13px;padding:4px 9px;border-radius:14px;opacity:0;transition:opacity .25s}
+.chip.on{opacity:1}
+.vp-hint{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted);pointer-events:none}
+.vp-btns{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
+.vp-btns button{border:1px solid var(--line);background:var(--panel);border-radius:4px;padding:5px 9px;cursor:pointer;font-size:13px}
+
+.steps{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.tab{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;font-weight:600;display:flex;gap:6px;align-items:baseline}
+.tab .n{font-weight:800;font-stretch:80%;font-size:16px;color:var(--blue)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab[aria-selected="true"] .n{color:var(--pencil)}
+.transport{display:flex;align-items:center;gap:10px;margin:10px 0 8px}
+.transport .play{width:42px;height:42px;border-radius:50%;border:none;background:var(--ink);color:var(--paper);cursor:pointer;font-size:16px;flex:0 0 auto}
+.transport .nav{border:1px solid var(--line);background:var(--paper);border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;flex:0 0 auto}
+/* tape-measure scrubber */
+input.tape{-webkit-appearance:none;appearance:none;flex:1;min-width:80px;height:30px;border-radius:3px;border:1px solid #9c7c10;cursor:pointer;
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.75) 0 1px,transparent 1px 10%) 0 0/100% 55% no-repeat,
+    repeating-linear-gradient(90deg,rgba(0,0,0,.55) 0 1px,transparent 1px 2%) 0 0/100% 30% no-repeat,
+    #F1C232;}
+input.tape::-webkit-slider-thumb{-webkit-appearance:none;width:4px;height:36px;background:#B3261E;border-radius:1px;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+input.tape::-moz-range-thumb{width:4px;height:36px;background:#B3261E;border:none;border-radius:1px}
+.tlabel{font-size:12px;color:var(--muted);min-width:44px;text-align:right}
+.bullets{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-width:78ch}
+.bullets li{padding:6px 10px;border-radius:4px;cursor:pointer;border-left:3px solid transparent;transition:background .2s}
+.bullets li.on{background:color-mix(in srgb,var(--pencil) 40%,transparent);border-left-color:var(--pencil)}
+.bullets li.done{color:var(--muted)}
+.src{font-size:12px;color:var(--muted);margin-top:8px}
+
+section.materials{padding:8px clamp(16px,3vw,36px) 40px}
+section.materials > h2{font-weight:800;font-stretch:80%;font-size:clamp(26px,3.4vw,40px);margin:10px 0 4px}
+section.materials > p{margin:0 0 14px;color:var(--muted);max-width:70ch}
+.mgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+.mlist{display:grid;gap:6px;align-content:start}
+.mgroup{font-weight:700;font-size:14px;margin:10px 0 2px;color:var(--blue)}
+.mitem{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:6px 10px 6px 6px;cursor:pointer;text-align:left}
+.mitem[aria-pressed="true"]{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.mitem img{width:64px;height:64px;border-radius:4px;background:var(--scene);display:block}
+.mitem b{display:block;font-size:14px}
+.mitem small{color:var(--muted);font-size:12.5px;display:block}
+.mitem .dims2d{font-family:var(--hand);font-size:13px;color:var(--blue)}
+.no-plans .dims2d{display:none}
+.qty{font-weight:800;font-stretch:80%;font-size:22px;text-align:right;line-height:1}
+.qty span{display:block;font-size:11px;font-weight:500;color:var(--muted);font-stretch:100%}
+.mviewer{position:sticky;top:12px;align-self:start;display:grid;gap:10px}
+.mcanvas{height:340px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--scene);position:relative}
+.mcanvas canvas{width:100%;height:100%;display:block;touch-action:none}
+.mcanvas .cap{position:absolute;left:10px;top:8px;font-weight:700;font-size:15px;right:10px}
+.mcanvas .cap small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.cutplan h3,.tools h3{font-size:16px;margin:18px 0 6px}
+.cutplan .sheet{padding:10px}
+.tools ul{margin:0;padding-left:18px;columns:2;column-gap:28px}
+.tools li{margin-bottom:4px;break-inside:avoid}
+footer{padding:0 clamp(16px,3vw,36px) 30px;color:var(--muted);font-size:13px}
+
+@media (max-width:1180px){
+  .stage-grid{grid-template-columns:minmax(0,1fr)}
+  .plans{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .plans-left{order:2}.plans-right{order:3}
+}
+@media (max-width:860px){
+  .workbench{grid-template-columns:minmax(0,1fr)}
+  .controls{position:static;order:2}
+  .stage{order:1}
+  .mgrid{grid-template-columns:minmax(0,1fr)}
+  .mviewer{position:static;order:-1}
+  .tools ul{columns:1}
+  .viewport{height:56vh;min-height:320px}
+}
+@media (max-width:520px){ .plans{grid-template-columns:minmax(0,1fr)} }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Mueble organizador para lavamanos</h1>
+  <p>Modelo 3D paramétrico del proyecto de <a href="https://www.hagaloustedmismo.cl/proyectos/como-hacer-un-mueble-organizador-para-lavamanos.html" target="_blank" rel="noopener">Hágalo Usted Mismo</a>. Cambia medidas, cantidad y material: el paso a paso animado, los planos, el despiece y la lista de compras se recalculan solos.</p>
+</header>
+
+<main class="workbench">
+  <aside class="controls" aria-label="Configuración del mueble">
+    <h2>Medidas de cada mueble</h2>
+    <div class="field"><label for="nH">Alto total</label><span><input id="nH" type="number" step="0.1" min="30" max="120"> <span class="unit">cm</span></span><input id="rH" type="range" min="30" max="120" step="0.1" aria-label="Alto total"></div>
+    <div class="field"><label for="nW">Ancho</label><span><input id="nW" type="number" step="0.1" min="15" max="60"> <span class="unit">cm</span></span><input id="rW" type="range" min="15" max="60" step="0.1" aria-label="Ancho"></div>
+    <div class="field"><label for="nD">Largo (profundidad)</label><span><input id="nD" type="number" step="0.1" min="20" max="60"> <span class="unit">cm</span></span><input id="rD" type="range" min="20" max="60" step="0.1" aria-label="Largo"></div>
+    <details class="hueco">
+      <summary>Calcular desde el hueco disponible</summary>
+      <div class="hueco-grid">
+        <label>Alto<input id="hH" type="number" value="58" step="0.1"></label>
+        <label>Ancho<input id="hW" type="number" value="26" step="0.1"></label>
+        <label>Largo<input id="hD" type="number" value="37" step="0.1"></label>
+      </div>
+      <button class="btn ghost" id="useHueco" type="button">Usar hueco menos 2 cm</button>
+    </details>
+    <div class="stepper"><span class="lbl">Repisas interiores</span><span class="ctl"><button type="button" data-k="shelves" data-d="-1" aria-label="Quitar repisa">−</button><output id="oShelves"></output><button type="button" data-k="shelves" data-d="1" aria-label="Agregar repisa">+</button></span></div>
+    <div class="stepper"><span class="lbl">Muebles a construir</span><span class="ctl"><button type="button" data-k="modules" data-d="-1" aria-label="Quitar mueble">−</button><output id="oModules"></output><button type="button" data-k="modules" data-d="1" aria-label="Agregar mueble">+</button></span></div>
+    <label class="toggle"><input type="checkbox" id="cWC"> Incluir repisa sobre el WC (paso 6)</label>
+
+    <h2>Material</h2>
+    <div class="mats" id="mats" role="radiogroup" aria-label="Material"></div>
+    <h2>Terminación</h2>
+    <select id="finish" aria-label="Terminación"></select>
+
+    <h2>Vista</h2>
+    <label class="toggle"><input type="checkbox" id="c2d" checked> Planos y cotas 2D a los lados</label>
+    <label class="toggle"><input type="checkbox" id="cEnv" checked> Mostrar baño (lavamanos y WC)</label>
+    <div class="warn" id="warn" role="status"></div>
+  </aside>
+
+  <section class="stage" aria-label="Modelo y paso a paso">
+    <div class="stage-grid" id="stageGrid">
+      <div class="plans plans-left">
+        <div class="sheet"><h3>Vista frontal</h3><div id="svgFront"></div></div>
+        <div class="sheet"><h3>Vista lateral</h3><div id="svgSide"></div></div>
+      </div>
+      <div class="viewport" id="vp">
+        <div class="vp-title"><strong id="vpTitle"></strong><span class="chip" id="chip"></span></div>
+        <div class="vp-hint">Arrastra para girar, rueda o pellizco para acercar</div>
+        <div class="vp-btns"><button type="button" id="recenter">Recentrar</button></div>
+      </div>
+      <div class="plans plans-right">
+        <div class="sheet"><h3>Planta</h3><div id="svgTop"></div></div>
+        <div class="sheet"><h3>Despiece por mueble</h3><div id="svgParts"></div></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="transport">
+        <button class="play" id="play" type="button" aria-label="Reproducir">▶</button>
+        <button class="nav" id="prev" type="button">Anterior</button>
+        <input class="tape" id="tape" type="range" min="0" max="1000" value="0" aria-label="Avance del paso">
+        <span class="tlabel" id="tlabel">0%</span>
+        <button class="nav" id="next" type="button">Siguiente</button>
+      </div>
+      <ul class="bullets" id="bullets"></ul>
+      <div class="src">Fuente de cada paso: <a href="https://www.hagaloustedmismo.cl/proyectos/como-hacer-un-mueble-organizador-para-lavamanos.html" target="_blank" rel="noopener">hagaloustedmismo.cl, “Cómo hacer un mueble organizador para lavamanos” (6 jun. 2024)</a>. Las cantidades se recalculan para tus medidas.</div>
+    </div>
+  </section>
+</main>
+
+<section class="materials" id="materials">
+  <h2>Materiales para tu versión</h2>
+  <p id="matLead"></p>
+  <div class="mgrid" id="mgrid">
+    <div class="mlist" id="mlist"></div>
+    <div class="mviewer">
+      <div class="mcanvas" id="mcanvas"><div class="cap" id="mcap"></div></div>
+      <div class="sheet" id="mspecWrap"><h3>Cotas del material</h3><div id="mspec"></div></div>
+    </div>
+  </div>
+  <div class="cutplan"><h3>Plan de corte</h3><div class="sheet"><div id="svgCut"></div></div></div>
+  <div class="tools"><h3>Herramientas y seguridad</h3><ul id="tools"></ul></div>
+</section>
+<footer>Basado en el proyecto publicado por Hágalo Usted Mismo (Sodimac). Las medidas comerciales de tablas y planchas son referenciales: confírmalas en tienda antes de comprar. Consumos de lija, tinte y barniz son estimaciones con rendimientos típicos de etiqueta.</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const V3=THREE.Vector3, Qt=THREE.Quaternion;
+const clamp01=u=>u<0?0:u>1?1:u;
+const ease=u=>{u=clamp01(u);return u*u*(3-2*u)};
+const seg=(t,a,b)=>clamp01((t-a)/(b-a));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const fmt=(v,d=1)=>(Math.round(v*Math.pow(10,d))/Math.pow(10,d)).toLocaleString('es-CL',{maximumFractionDigits:d});
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------- data ---------------- */
+const MATS={
+  pino:{name:'Pino laminado 1,8 cm',short:'pino laminado',t:1.8,process:'wood',sw:'#D8B27A',
+    stock:{kind:'board',L:200,W:20,name:'Repisa laminada de pino 200 × 20 × 1,8 cm',unit:'tablas'},tex:'laminado',edge:'laminado',
+    note:'El del proyecto original.'},
+  terciado:{name:'Terciado mueblería 18 mm',short:'terciado',t:1.8,process:'wood',sw:'#D0AA78',
+    stock:{kind:'sheet',L:244,W:122,name:'Plancha terciado mueblería 122 × 244 × 1,8 cm',unit:'planchas'},tex:'plywood',edge:'plyedge',
+    note:'Más estable con humedad; se corta desde plancha.'},
+  mdf:{name:'MDF 15 mm',short:'MDF',t:1.5,process:'paint',sw:'#A9835C',
+    stock:{kind:'sheet',L:244,W:152,name:'Plancha MDF 152 × 244 × 1,5 cm',unit:'planchas'},tex:'mdf',edge:'mdf',
+    note:'Económico; hay que sellarlo y pintarlo bien.'},
+  melamina:{name:'Melamina blanca 15 mm',short:'melamina',t:1.5,process:'melamine',sw:'#F2F2EE',
+    stock:{kind:'sheet',L:250,W:183,name:'Plancha melamina blanca 183 × 250 × 1,5 cm',unit:'planchas'},tex:'melamina',edge:'chip',
+    note:'Viene terminada; lleva tapacantos.'}
+};
+const FINISHES={
+  wood:[{id:'blanco',name:'Tinte blanco (como en la web)',tint:0xB9B3AA,emis:0x86827B,rough:.38},
+        {id:'natural',name:'Natural (solo barniz)',tint:0xF3D9A8,emis:0x000000,rough:.34},
+        {id:'nogal',name:'Tinte nogal',tint:0x8E5C36,emis:0x000000,rough:.36}],
+  paint:[{id:'blanco',name:'Esmalte al agua blanco',tint:0xD8D6D0,emis:0x3a3a38,rough:.5},
+         {id:'salvia',name:'Esmalte al agua verde salvia',tint:0x93A596,emis:0x000000,rough:.5}],
+  melamine:[{id:'blanco',name:'Blanco de fábrica + tapacantos',tint:0xffffff,emis:0,rough:.5}]
+};
+const P={H:55.8,W:23.6,D:35,shelves:2,modules:2,mat:'pino',finish:'blanco',wc:true,show2d:true,env:true};
+const ROLE_COLORS={lat:'#C99A5A',hor:'#E0B97F',leg:'#8E6A3D',wc:'#B08D5E'};
+
+/* ---------------- textures ---------------- */
+function rnd(seed){let s=seed%2147483647;if(s<=0)s+=2147483646;return()=>(s=s*16807%2147483647)/2147483647}
+function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t}
+const rgb=(r,g,b)=>`rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+function grainLines(g,r,y0,h,w,col,n){for(let k=0;k<n;k++){g.strokeStyle=`rgba(${col},${.06+r()*.14})`;g.lineWidth=.5+r()*1.6;g.beginPath();const yy=y0+r()*h,amp=.6+r()*3,f=.003+r()*.012,ph=r()*6;for(let x=0;x<=w;x+=8){const v=yy+Math.sin(x*f+ph)*amp+Math.sin(x*f*3.1)*amp*.3;x?g.lineTo(x,v):g.moveTo(x,v)}g.stroke()}}
+const TEX={
+  laminado:canvasTex(1024,256,(g,w,h)=>{const r=rnd(11);let y=0;while(y<h){const bh=24+r()*26,d=r()*26-13;g.fillStyle=rgb(216+d,178+d*.9,122+d*.7);g.fillRect(0,y,w,bh);grainLines(g,r,y,bh,w,'120,78,36',8);
+    for(let j=0;j<2;j++)if(r()<.55){const fx=r()*w;g.strokeStyle='rgba(105,70,35,.35)';g.lineWidth=1;g.beginPath();for(let i=0;i<=8;i++){g.lineTo(fx+(i%2?5:-5),y+i*bh/8)}g.stroke()}
+    g.fillStyle='rgba(95,60,28,.22)';g.fillRect(0,y,w,1.2);y+=bh}}),
+  plywood:canvasTex(1024,256,(g,w,h)=>{const r=rnd(5);g.fillStyle='#D6B17E';g.fillRect(0,0,w,h);for(let k=0;k<26;k++){const cx=r()*w,cy=r()*h,rx=60+r()*260,ry=6+r()*26;g.strokeStyle=`rgba(140,95,50,${.12+r()*.18})`;g.lineWidth=1+r()*2;for(let q=0;q<4;q++){g.beginPath();g.ellipse(cx,cy,rx+q*14,ry+q*4,0,0,Math.PI*2);g.stroke()}}grainLines(g,r,0,h,w,'130,90,50',30)}),
+  plyedge:canvasTex(256,64,(g,w,h)=>{for(let i=0;i<9;i++){g.fillStyle=i%2?'#B88A55':'#E0C08E';g.fillRect(0,i*h/9,w,h/9)}}),
+  mdf:canvasTex(512,256,(g,w,h)=>{const r=rnd(3);g.fillStyle='#AF8961';g.fillRect(0,0,w,h);for(let i=0;i<9000;i++){g.fillStyle=`rgba(${r()<.5?'90,60,30':'210,180,140'},${r()*.18})`;g.fillRect(r()*w,r()*h,1.5,1.5)}}),
+  melamina:canvasTex(256,256,(g,w,h)=>{const r=rnd(9);g.fillStyle='#F4F4F1';g.fillRect(0,0,w,h);for(let i=0;i<2500;i++){g.fillStyle=`rgba(0,0,0,${r()*.03})`;g.fillRect(r()*w,r()*h,2,2)}}),
+  chip:canvasTex(256,64,(g,w,h)=>{const r=rnd(4);g.fillStyle='#BFA279';g.fillRect(0,0,w,h);for(let i=0;i<2600;i++){g.fillStyle=r()<.5?'rgba(120,90,50,.5)':'rgba(230,210,170,.5)';g.fillRect(r()*w,r()*h,1+r()*3,1+r()*2)}}),
+  paint:canvasTex(256,256,(g,w,h)=>{const r=rnd(2);g.fillStyle='#FFFFFF';g.fillRect(0,0,w,h);for(let i=0;i<1500;i++){g.fillStyle=`rgba(0,0,0,${r()*.025})`;g.fillRect(r()*w,r()*h,3,1)}}),
+  floor:canvasTex(512,512,(g,w,h)=>{g.fillStyle='#CFD3CD';g.fillRect(0,0,w,h);const r=rnd(8);for(let i=0;i<4;i++)for(let j=0;j<4;j++){const d=r()*10-5;g.fillStyle=rgb(206+d,211+d,204+d);g.fillRect(i*128+2,j*128+2,124,124)}}),
+  wall:canvasTex(512,512,(g,w,h)=>{g.fillStyle='#C9D0CB';g.fillRect(0,0,w,h);const r=rnd(6);for(let i=0;i<8;i++)for(let j=0;j<4;j++){const d=r()*8-4;g.fillStyle=rgb(236+d,240+d,237+d);g.fillRect(i*64+1.5,j*128+1.5,61,125)}})
+};
+TEX.floor.repeat.set(20,20);TEX.wall.repeat.set(8,3);
+
+/* ---------------- model computation ---------------- */
+function splitGreedy(total,max){const o=[];let r=total;while(r>max+1e-6){o.push(max);r-=max}o.push(r);if(o.length>1&&o[o.length-1]<4){const a=o.pop(),b=o.pop();o.push((a+b)/2,(a+b)/2)}return o}
+function splitEqual(total,max){const k=Math.max(1,Math.ceil(total/max-1e-9));return Array(k).fill(total/k)}
+
+function pack(pieces,st){
+  const kerf=.3,wk=st.kind==='sheet'?.3:0;const stocks=[];
+  const sorted=[...pieces].sort((a,b)=>b.W-a.W||b.L-a.L);
+  const newStock=()=>{const s={lanes:[],usedW:0};stocks.push(s);return s};
+  const newLane=(s,w)=>{const ln={z:s.usedW,w,used:0,items:[]};s.lanes.push(ln);s.usedW+=w+wk;return ln};
+  for(const p of sorted){
+    let cand=null,cw=Infinity;
+    for(const s of stocks)for(const ln of s.lanes){if(ln.w>=p.W-1e-6&&ln.used+p.L<=st.L+1e-6){const w=ln.w-p.W;if(w<cw){cw=w;cand=ln}}}
+    let ln;
+    if(cand&&cw<.5)ln=cand;
+    else{const s2=stocks.find(s=>st.W-s.usedW>=p.W-1e-6);if(s2)ln=newLane(s2,p.W);else if(cand)ln=cand;else ln=newLane(newStock(),p.W)}
+    ln.items.push({piece:p,x:ln.used});ln.used+=p.L+kerf;
+  }
+  return stocks;
+}
+
+function compute(){
+  const M=MATS[P.mat],st=M.stock,t=M.t,isBoard=st.kind==='board';
+  const H=P.H,W=P.W,D=P.D,n=P.shelves;
+  const legS=Math.min(5,W/4,D/4),legH=t,Ls=H-legH,Wi=W-2*t;
+  const sideStrips=isBoard?splitGreedy(D,st.W):[D];
+  const horizStrips=isBoard?splitEqual(Wi,st.W):[Wi];
+  const rel=[t/2];
+  if(n===2)rel.push(Ls*20.2/54,Ls*33.8/54);else for(let k=1;k<=n;k++)rel.push(t/2+k*(Ls-t)/(n+1));
+  rel.push(Ls-t/2);
+  const horiz=rel.map((y,i)=>({y,role:i===0?'base':i===rel.length-1?'tapa':'repisa',idx:i}));
+  // groups
+  const hasOther=sideStrips.length>1;
+  const G=2+n+(hasOther?1:0)+1;
+  const gOf=h=>h.role==='base'||h.role==='tapa'?1:1+h.idx; // shelves idx1..n -> 2..n+1
+  const gOther=2+n, gLegs=G-1;
+  // layout in bathroom
+  const Rp=10,zWall=0,mz=1+D/2;
+  const modX=[];for(let i=0;i<P.modules;i++){const side=i%2===0?-1:1,k=Math.floor(i/2);modX.push(side*(Rp+1.5+W/2+k*(W+4)))}
+  const Bw=Math.max(56,2*(Rp+1.5+W+2)),Bd=Math.max(44,D+8),yb=Math.max(66,H+4);
+  const farR=Math.max(Bw/2,...modX.map(x=>x+W/2));
+  const xWC=farR+48,Lwc=Math.min(80,Math.max(30,Ls)),yWC=112;
+  const pieces=[];let pid=0;
+  const mk=(o)=>{o.id=pid++;o.t=t;pieces.push(o);return o};
+  modX.forEach((mx,m)=>{
+    // laterals
+    [-1,1].forEach(side=>{let zo=0;sideStrips.forEach((w,si)=>{
+      const p=mk({kind:'lat',role:si===0?'lateral':'lateral '+fmt(w),label:'Lateral',L:Ls,W:w,m,side,si,group:si===0?0:gOther,
+        final:{pos:new V3(mx+side*(W/2-t/2),legH+Ls/2,mz-D/2+zo+w/2),q:new Qt().setFromEuler(new THREE.Euler(0,0,Math.PI/2))},zo});
+      p.holes=[];horiz.forEach(h=>{const zs=w>=8?[3,w-3]:[w/2];zs.forEach(z=>p.holes.push({lx:-Ls/2+h.y,lz:-w/2+z,h:h.idx,wz:mz-D/2+zo+z}))});
+      zo+=w})});
+    horiz.forEach(h=>{let xo=0;horizStrips.forEach((w,hi)=>{
+      mk({kind:'hor',role:h.role,label:h.role==='base'?'Base':h.role==='tapa'?'Tapa':'Repisa',L:D,W:w,m,h:h.idx,group:gOf(h),
+        final:{pos:new V3(mx-Wi/2+xo+w/2,legH+h.y,mz),q:new Qt().setFromEuler(new THREE.Euler(0,Math.PI/2,0))}});xo+=w})});
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz])=>{
+      mk({kind:'leg',role:'pata',label:'Pata',L:legS,W:legS,m,group:gLegs,final:{pos:new V3(mx+sx*(W/2-1-legS/2),t/2,mz+sz*(D/2-1-legS/2)),q:new Qt()}})});
+  });
+  if(P.wc){
+    mk({kind:'wc',role:'repisa WC',label:'Tabla repisa WC',L:Lwc,W:20,m:-1,final:{pos:new V3(xWC,yWC+t/2,10),q:new Qt()}});
+    [0,1].forEach(k=>mk({kind:'wcs',role:'listón WC',label:'Listón repisa WC',L:Lwc,W:5,m:-1,k,final:{pos:new V3(xWC,yWC+t+2.5,k?20-t/2:t/2),q:new Qt().setFromEuler(new THREE.Euler(Math.PI/2,0,0))}}));
+  }
+  // screws
+  const screws=[];
+  pieces.filter(p=>p.kind==='lat').forEach(p=>{const mx=modX[p.m];p.holes.forEach(hl=>{
+    const hh=horiz[hl.h];screws.push({type:'s158',pos:new V3(mx+p.side*W/2,legH+hh.y,hl.wz),dir:new V3(-p.side,0,0),group:Math.max(p.group,gOf(hh)),m:p.m,dowel:true})})});
+  pieces.filter(p=>p.kind==='leg').forEach(p=>{const c=p.final.pos;const o=Math.min(1.5,legS/2-.8);[[-o,-o],[o,o]].forEach(([dx,dz])=>screws.push({type:'s114',pos:new V3(c.x+dx,0,c.z+dz),dir:new V3(0,1,0),group:gLegs,m:p.m}))});
+  const wcScrews=[],wallFix=[];
+  if(P.wc){const xs=Lwc>=44?[3,19,Lwc-19,Lwc-3]:[3,Lwc-3];[t/2,20-t/2].forEach(z=>xs.forEach(x=>wcScrews.push({type:'s158',pos:new V3(xWC-Lwc/2+x,yWC,z),dir:new V3(0,1,0)})));
+    [-1,1].forEach(s=>wallFix.push({pos:new V3(xWC+s*(Lwc/2-10),yWC+t+2.5,t),dir:new V3(0,0,-1)}))}
+  // stock placement
+  const stocks=pack(pieces,st);
+  let zc=D+34;
+  stocks.forEach(s=>{s.z0=zc;s.x0=-st.L/2;zc+=st.W+s.lanes.length*3+12;
+    s.lanes.forEach((ln,li)=>ln.items.forEach((it,ii)=>{const p=it.piece;
+      p.stockPos=new V3(s.x0+it.x+p.L/2,t/2,s.z0+ln.z+p.W/2);
+      p.layoutPos=p.stockPos.clone().add(new V3(ii*3-(ln.items.length-1)*1.5,0,li*3));
+      p.lane=ln;p.stock=s}))});
+  // cuts
+  const cuts=[];
+  stocks.forEach(s=>{s.lanes.forEach(ln=>{if(ln.z+ln.w<st.W-.05){cuts.push({a:new V3(s.x0,0,s.z0+ln.z+ln.w),b:new V3(s.x0+st.L,0,s.z0+ln.z+ln.w),lane:ln,rip:true})}});
+    s.lanes.forEach(ln=>ln.items.forEach(it=>{const x=s.x0+it.x+it.piece.L;if(x<s.x0+st.L-.05)cuts.push({a:new V3(x,0,s.z0+ln.z),b:new V3(x,0,s.z0+ln.z+ln.w),piece:it.piece})}))});
+  let tot=0;cuts.forEach(c=>{c.len=c.a.distanceTo(c.b);tot+=c.len+12});
+  let acc=0;const c0=.12,c1=.68;cuts.forEach(c=>{c.t0=c0+(c1-c0)*(acc+6)/tot;acc+=c.len+12;c.t1=c0+(c1-c0)*(acc-6)/tot;if(c.piece)c.piece.cutT=c.t1;if(c.rip)c.lane.ripT=c.t1});
+  pieces.forEach(p=>{if(p.cutT==null)p.cutT=p.lane.ripT!=null?p.lane.ripT:c0});
+  // quantities
+  const mod=pieces.filter(p=>p.m>=0);
+  const area=pieces.reduce((a,p)=>a+(2*p.L*p.W+2*p.L*t+2*p.W*t),0)/1e4;
+  const s158=screws.filter(s=>s.type==='s158').length+wcScrews.length, s114=screws.filter(s=>s.type==='s114').length;
+  const dowels=screws.filter(s=>s.dowel).length;
+  const visEdge=(P.modules*(horiz.length*Wi+2*Ls+4*D)+(P.wc?Lwc*3:0))/100;
+  return {M,st,t,H,W,D,n,legS,legH,Ls,Wi,sideStrips,horizStrips,rel,horiz,G,gOther,gLegs,hasOther,modX,mz,Bw,Bd,yb,xWC,Lwc,yWC,Rp,
+    pieces,screws,wcScrews,wallFix,stocks,cuts,area,s158,s114,dowels,visEdge,isBoard,zStock:D+34,zEnd:zc};
+}
+
+/* ---------------- three setup ---------------- */
+const vp=$('#vp');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+vp.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(36,1,1,6000);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.maxPolarAngle=Math.PI*.49;controls.minDistance=20;controls.maxDistance=1400;
+scene.add(new THREE.HemisphereLight(0xffffff,0x8a8f88,.75));
+const sun=new THREE.DirectionalLight(0xffffff,.8);sun.position.set(120,260,220);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-320,right:320,top:320,bottom:-320,near:10,far:900});sun.shadow.bias=-.0008;
+scene.add(sun);scene.add(sun.target);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(2400,2400),new THREE.MeshStandardMaterial({map:TEX.floor,roughness:.9}));
+floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+const env=new THREE.Group(),work=new THREE.Group(),hollow=new THREE.Group(),tools=new THREE.Group();
+scene.add(env,work,hollow,tools);
+function readTheme(){const c=getComputedStyle(document.documentElement).getPropertyValue('--scene').trim()||'#DCE1DB';scene.background=new THREE.Color(c);scene.fog=new THREE.Fog(c,900,2600);if(mv)mv.scene.background=new THREE.Color(c)}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readTheme();scheduleThumbs()});
+
+const matMetal=(c)=>new THREE.MeshStandardMaterial({color:c,metalness:.7,roughness:.35});
+const ceramic=new THREE.MeshStandardMaterial({color:0xF7F8F6,roughness:.18,metalness:0});
+function disposeGroup(g){g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m.map&&m.map._clone)m.map.dispose();m.dispose&&m.dispose()})}});while(g.children.length)g.remove(g.children[0])}
+
+/* ---------- reusable meshes ---------- */
+function makeScrew(len,col=0x1d1d1d){
+  const g=new THREE.Group(),m=matMetal(col),hr=.36,sr=.17,tip=.45;
+  const head=new THREE.Mesh(new THREE.CylinderGeometry(hr,sr,.28,20),m);head.position.y=-.14;g.add(head);
+  const cross=new THREE.Mesh(new THREE.BoxGeometry(.42,.05,.08),new THREE.MeshStandardMaterial({color:0x000000}));cross.position.y=.005;g.add(cross);
+  const c2=cross.clone();c2.rotation.y=Math.PI/2;g.add(c2);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(sr,sr,len-.28-tip,14),m);shaft.position.y=-.28-(len-.28-tip)/2;g.add(shaft);
+  const tp=new THREE.Mesh(new THREE.ConeGeometry(sr,tip,14),m);tp.rotation.x=Math.PI;tp.position.y=-len+tip/2;g.add(tp);
+  const th=new THREE.TorusGeometry(sr+.02,.035,5,16);for(let y=-.5;y>-len+tip*.8;y-=.16){const r=new THREE.Mesh(th,m);r.rotation.x=Math.PI/2+.12;r.position.y=y;g.add(r)}
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g;
+}
+function orient(obj,from,dir){obj.quaternion.setFromUnitVectors(from,dir.clone().normalize())}
+function makeDowel(r=.5,len=4,col=0xE2C08C){const geo=new THREE.CylinderGeometry(r,r,len,16);geo.translate(0,len/2,0);const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:col,roughness:.8}));m.castShadow=true;return m}
+function makeNylonPlug(){const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:0xE9E6DD,roughness:.6});
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(.3,.26,3,12),m);c.position.y=-1.5;g.add(c);
+  for(let i=0;i<6;i++){const f=new THREE.Mesh(new THREE.CylinderGeometry(.38,.3,.18,12),m);f.position.y=-.4-i*.45;g.add(f)}
+  const col=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.1,14),m);col.position.y=-.05;g.add(col);return g}
+
+/* ---------- environment ---------- */
+let envParts={};
+function buildEnv(md){
+  disposeGroup(env);disposeGroup(hollow);envParts={};
+  const wall=new THREE.Mesh(new THREE.PlaneGeometry(900,260),new THREE.MeshStandardMaterial({map:TEX.wall,roughness:.6}));
+  wall.position.set(md.xWC/2,130,0);wall.receiveShadow=true;env.add(wall);envParts.wall=wall;
+  // basin
+  const basin=new THREE.Group();
+  const top=new THREE.Mesh(new THREE.BoxGeometry(md.Bw,14,md.Bd),ceramic);top.position.set(0,md.yb+7,md.Bd/2);top.castShadow=true;basin.add(top);
+  const bowl=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,40),new THREE.MeshStandardMaterial({color:0xE6E9E6,roughness:.15}));
+  bowl.scale.set(md.Bw*.36,1,md.Bd*.32);bowl.position.set(0,md.yb+14.1,md.Bd*.56);basin.add(bowl);
+  const prof=[];for(let i=0;i<=12;i++){const u=i/12;prof.push(new THREE.Vector2(8.5+2.5*Math.pow(Math.abs(u-.55)*1.8,2),u*md.yb))}
+  const ped=new THREE.Mesh(new THREE.LatheGeometry(prof,32),ceramic);ped.position.set(0,0,md.Bd*.42);ped.castShadow=true;basin.add(ped);
+  const fau=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,12,16),matMetal(0xcfd3d6));fau.position.set(0,md.yb+20,6);basin.add(fau);
+  const spout=new THREE.Mesh(new THREE.BoxGeometry(2.4,2,10),matMetal(0xcfd3d6));spout.position.set(0,md.yb+25,10);basin.add(spout);
+  env.add(basin);envParts.basin=basin;
+  // toilet
+  const wc=new THREE.Group();
+  const tank=new THREE.Mesh(new THREE.BoxGeometry(40,38,17),ceramic);tank.position.set(md.xWC,58,9.5);tank.castShadow=true;wc.add(tank);
+  const tlid=new THREE.Mesh(new THREE.BoxGeometry(42,2.5,19),ceramic);tlid.position.set(md.xWC,78,9.5);wc.add(tlid);
+  const bp=[];for(let i=0;i<=10;i++){const u=i/10;bp.push(new THREE.Vector2(10+8*Math.sin(u*Math.PI*.55),u*40))}
+  const bowlW=new THREE.Mesh(new THREE.LatheGeometry(bp,32),ceramic);bowlW.scale.set(1,1,1.35);bowlW.position.set(md.xWC,0,40);bowlW.castShadow=true;wc.add(bowlW);
+  const seat=new THREE.Mesh(new THREE.TorusGeometry(15,3,10,36),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.3}));seat.rotation.x=Math.PI/2;seat.scale.set(1,1.3,1);seat.position.set(md.xWC,41.5,42);wc.add(seat);
+  env.add(wc);envParts.wc=wc;
+  // wall holes for WC shelf
+  envParts.wallHoles=md.wallFix.map(f=>{const d=new THREE.Mesh(new THREE.CircleGeometry(.35,16),new THREE.MeshBasicMaterial({color:0x333333}));d.position.set(f.pos.x,f.pos.y,.06);env.add(d);return d});
+  // hollow outlines
+  md.modX.forEach(mx=>{const g=new THREE.BoxGeometry(md.W+2,md.H+2,md.D+2);const e=new THREE.LineSegments(new THREE.EdgesGeometry(g),new THREE.LineDashedMaterial({color:0x23466A,dashSize:2,gapSize:1.5,transparent:true}));e.computeLineDistances();e.position.set(mx,(md.H+2)/2,(md.D+2)/2);hollow.add(e);g.dispose()});
+}
+
+/* ---------- pieces ---------- */
+let MD=null,PM=[],SCR=[],DOW=[],WCSCR=[],WALLSCR=[],PLUGS=[],WASTE=[],LINES=[];
+function faceTexFor(kind){return TEX[kind]}
+function makePieceMats(md,p){
+  const face=TEX[md.M.tex].clone();face._clone=true;face.needsUpdate=true;face.repeat.set(Math.max(.3,p.L/90),Math.max(.3,p.W/40));
+  const edge=TEX[md.M.edge].clone();edge._clone=true;edge.needsUpdate=true;edge.repeat.set(Math.max(.3,p.L/60),1);
+  const fm=new THREE.MeshStandardMaterial({map:face,roughness:.85});
+  const em=new THREE.MeshStandardMaterial({map:edge,roughness:.9});
+  return {fm,em};
+}
+function buildWork(md){
+  disposeGroup(work);disposeGroup(tools);PM=[];SCR=[];DOW=[];WCSCR=[];WALLSCR=[];PLUGS=[];WASTE=[];LINES=[];
+  const t=md.t;
+  md.pieces.forEach(p=>{
+    const {fm,em}=makePieceMats(md,p);
+    const mesh=new THREE.Mesh(new THREE.BoxGeometry(p.L,t,p.W),[em,em,fm,fm,em,em]);mesh.castShadow=true;mesh.receiveShadow=true;
+    p.mesh=mesh;p.fm=fm;p.em=em;work.add(mesh);PM.push(p);
+    if(p.holes){p.holeMeshes=p.holes.map(h=>{const d=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.08,14),new THREE.MeshBasicMaterial({color:0x2a2a2a}));d.position.set(h.lx,-p.side*t/2,h.lz);mesh.add(d);return d})}
+  });
+  const dowelMat=new THREE.MeshStandardMaterial({color:0xE2C08C,roughness:.8});
+  const dCol=md.M.process==='melamine'?0xF6F6F3:md.M.process==='paint'?0xCBBBA2:0xE2C08C;dowelMat.color.setHex(dCol);
+  md.screws.forEach(s=>{const len=s.type==='s158'?4.1:3.2;const o=makeScrew(len);orient(o,new V3(0,-1,0),s.dir);o.position.copy(s.pos);work.add(o);s.obj=o;SCR.push(s);
+    if(s.dowel){const d=md.M.process==='melamine'?new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.15,18).translate(0,.075,0),dowelMat):new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,1,16).translate(0,.5,0),dowelMat);
+      const out=s.dir.clone().negate();orient(d,new V3(0,1,0),out);d.castShadow=true;work.add(d);DOW.push({s,obj:d,out})}});
+  md.dowelMat=dowelMat;
+  md.wcScrews.forEach(s=>{const o=makeScrew(4.1);orient(o,new V3(0,-1,0),s.dir);work.add(o);s.obj=o;WCSCR.push(s)});
+  md.wallFix.forEach(f=>{const o=makeScrew(5,0x9aa0a4);orient(o,new V3(0,-1,0),f.dir);work.add(o);f.obj=o;WALLSCR.push(f);
+    const pl=makeNylonPlug();orient(pl,new V3(0,1,0),new V3(0,0,1));work.add(pl);f.plug=pl;PLUGS.push(f)});
+  // waste + pencil lines
+  const st=md.st;
+  md.stocks.forEach(s=>{
+    const wm=new THREE.MeshStandardMaterial({map:TEX[md.M.tex],color:0xb9b2a6,roughness:.95,transparent:true});
+    s.lanes.forEach(ln=>{const used=ln.used-.3,rem=st.L-used;if(rem>.4){const m=new THREE.Mesh(new THREE.BoxGeometry(rem,t,ln.w),wm);m.position.set(s.x0+used+rem/2,t/2,s.z0+ln.z+ln.w/2);work.add(m);WASTE.push({m,s,ln})}});
+    const rw=st.W-s.usedW+(st.kind==='sheet'?.3:0);if(rw>.3){const m=new THREE.Mesh(new THREE.BoxGeometry(st.L,t,rw),wm);m.position.set(0,t/2,s.z0+st.W-rw/2);work.add(m);WASTE.push({m,s})}
+  });
+  md.cuts.forEach(c=>{const L=c.len;const m=new THREE.Mesh(new THREE.BoxGeometry(c.rip?L:.18,.05,c.rip?.18:L),new THREE.MeshBasicMaterial({color:0x2b2b2b}));
+    m.position.set((c.a.x+c.b.x)/2,t+.03,(c.a.z+c.b.z)/2);work.add(m);c.line=m;LINES.push(c)});
+  // tools
+  const saw=new THREE.Group();const blade=new THREE.Mesh(new THREE.CylinderGeometry(9.2,9.2,.25,40),matMetal(0xb8bec2));blade.rotation.x=Math.PI/2;blade.position.y=3;saw.add(blade);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(24,9,14),new THREE.MeshStandardMaterial({color:0xE0B21C,roughness:.5}));body.position.set(0,9,-8);saw.add(body);
+  const shoe=new THREE.Mesh(new THREE.BoxGeometry(28,.6,18),matMetal(0x777d80));shoe.position.set(0,4.5,-5);saw.add(shoe);
+  saw.userData.blade=blade;tools.add(saw);
+  const sander=new THREE.Group();const pad=new THREE.Mesh(new THREE.BoxGeometry(11,1.5,11),new THREE.MeshStandardMaterial({color:0x303436}));pad.position.y=.75;sander.add(pad);
+  const sb=new THREE.Mesh(new THREE.BoxGeometry(10,6,10),new THREE.MeshStandardMaterial({color:0xE0B21C,roughness:.5}));sb.position.y=4.5;sander.add(sb);
+  const kn=new THREE.Mesh(new THREE.SphereGeometry(3.4,16,12),new THREE.MeshStandardMaterial({color:0x303436}));kn.position.y=8.5;sander.add(kn);tools.add(sander);
+  const brush=new THREE.Group();const bh=new THREE.Mesh(new THREE.CylinderGeometry(.8,1.1,14,12),new THREE.MeshStandardMaterial({color:0x9b6b3d}));bh.position.y=12;brush.add(bh);
+  const fer=new THREE.Mesh(new THREE.BoxGeometry(6,3,1.6),matMetal(0xc0c4c6));fer.position.y=4;brush.add(fer);
+  const bri=new THREE.Mesh(new THREE.BoxGeometry(5.6,4,1.3),new THREE.MeshStandardMaterial({color:0x2c2520}));bri.position.y=1;brush.add(bri);tools.add(brush);
+  const drill=new THREE.Group();const db=new THREE.Mesh(new THREE.BoxGeometry(6,6,18),new THREE.MeshStandardMaterial({color:0xE0B21C}));drill.add(db);
+  const dh=new THREE.Mesh(new THREE.BoxGeometry(5,14,5),new THREE.MeshStandardMaterial({color:0x303436}));dh.position.set(0,-9,5);drill.add(dh);
+  const bit=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,8,8),matMetal(0xaaaaaa));bit.rotation.x=Math.PI/2;bit.position.z=-13;drill.add(bit);tools.add(drill);
+  tools.userData={saw,sander,brush,drill};
+  tools.traverse(o=>{if(o.isMesh)o.castShadow=true});
+}
+
+/* ---------------- steps ---------------- */
+const DUR=[8,14,8,18,10,12,14];
+function stepsText(md){
+  const pr=md.M.process,st=md.st,nm=P.modules,t=md.t;
+  const nH=md.horiz.length*md.horizStrips.length,nL=2*md.sideStrips.length;
+  const otherW=md.sideStrips.slice(1).map(w=>fmt(w)).join(' y ');
+  const stockN=md.stocks.length;
+  const total={};md.pieces.filter(p=>p.m>=0).forEach(p=>{const k=`${fmt(p.L)} × ${fmt(p.W)}`;total[k]=(total[k]||0)+1});
+  const totalTxt=Object.entries(total).map(([k,v])=>`${v} de ${k}`).join(', ');
+  const s=[];
+  s.push({title:'Sobre el proyecto',b:[
+    {x:`Mide el hueco a cada lado del pedestal. En la web es 26 cm de ancho, 37 de largo y 58 de alto.`,a:0,b:.35},
+    {x:`Cada mueble queda de ${fmt(md.W)} × ${fmt(md.D)} × ${fmt(md.H)} cm (ancho × largo × alto): unos 2 cm menos que el hueco para que entre holgado.`,a:.35,b:.7},
+    {x:`Construirás ${nm} ${nm===1?'mueble':'muebles iguales'} de ${md.M.short}${pr==='wood'?', con tornillos tapados con tarugos y terminación de tinte y barniz':pr==='paint'?', sellado y pintado con esmalte al agua':', con tapacantos en los bordes'}.`,a:.7,b:1}]});
+  const b1=[{x:'Protégete con guantes, lentes de seguridad y respirador. Marca los cortes con lápiz.',a:0,b:.12},
+    {x:`Por mueble: ${nH} trozos de ${fmt(md.D)} cm (base, tapa y ${md.n} repisa${md.n===1?'':'s'}), ${nL} laterales de ${fmt(md.Ls)} cm y 4 patas de ${fmt(md.legS)} × ${fmt(md.legS)} cm.`,a:.12,b:.4}];
+  if(md.isBoard&&md.sideStrips.length>1)b1.push({x:`Rebaja a ${otherW} cm el ancho de ${2*(md.sideStrips.length-1)} laterales por mueble con un corte a lo largo de la sierra circular.`,a:.4,b:.68});
+  else if(!md.isBoard)b1.push({x:`Desde ${st.kind==='sheet'?'la plancha':'la tabla'}: primero cortes a lo largo (franjas) y luego transversales. Puedes pedir el dimensionado en tienda.`,a:.4,b:.68});
+  if(md.horizStrips.length>1)b1.push({x:`Tu ancho interior (${fmt(md.Wi)} cm) supera la tabla: base, tapa y repisas se forman con ${md.horizStrips.length} franjas encoladas.`,a:.4,b:.68});
+  b1.push({x:`Total: ${totalTxt}${P.wc?', más la tabla y 2 listones de la repisa WC':''}. Se usan ${stockN} ${stockN===1?st.unit.replace(/s$/,''):st.unit}.`,a:.68,b:1});
+  s.push({title:'Corta la madera',b:b1});
+  s.push({title:pr==='melamine'?'Revisa los cantos':'Lija las piezas',b:pr==='melamine'?[
+    {x:'La cara melamínica no se lija. Revisa que ningún canto quede astillado.',a:0,b:.5},
+    {x:'Si hay astillas, pasa una lija fina n.º 150 solo por el canto, suavemente.',a:.5,b:1}]:[
+    {x:'Lija cada pieza por separado antes de armar: una vez armado, el interior es difícil de alcanzar.',a:0,b:.5},
+    {x:'Usa lijadora orbital con lija n.º 120 y protección: respirador, guantes y lentes.',a:.5,b:1}]});
+  const g0=.14,gs=(.96-g0)/md.G,holesPer=md.horiz.length*2;
+  const b3=[{x:`Marca ${holesPer} perforaciones en cada lateral: a 3 cm de cada borde largo y a ${fmt(t/2*10,0)} mm de cada extremo, más una fila a la altura de cada repisa. Avellana con broca de 6 mm atravesando la madera.`,a:0,b:g0},
+    {x:`Atornilla los laterales de ${fmt(md.sideStrips[0])} cm con la base y la tapa de ${fmt(md.D)} cm, con tornillos de 1 ⅝" en los agujeros avellanados.`,a:g0,b:g0+2*gs}];
+  if(md.n>0)b3.push({x:`Ubica ${md.n===1?'la repisa':'las '+md.n+' repisas'} a la altura de las perforaciones y fíjala${md.n===1?'':'s'} a través de los laterales.`,a:g0+2*gs,b:g0+(2+md.n)*gs});
+  if(md.hasOther)b3.push({x:`Completa los costados con los laterales de ${otherW} cm.`,a:g0+md.gOther*gs,b:g0+(md.gOther+1)*gs});
+  b3.push({x:`Pon una pata en cada esquina, a 1 cm de los bordes, con cola fría y 2 tornillos de 1 ¼" en diagonal.${nm>1?' Repite todo para el otro mueble.':''}`,a:g0+md.gLegs*gs,b:1});
+  s.push({title:'Arma los módulos',b:b3});
+  s.push({title:'Tapa los tornillos',b:pr==='melamine'?[
+    {x:'Pega una tapa adhesiva del mismo color sobre cada cabeza de tornillo.',a:0,b:.6},{x:'Presiona con el pulgar y limpia los bordes.',a:.6,b:1}]:pr==='paint'?[
+    {x:'Rellena cada avellanado con masilla para madera.',a:0,b:.5},{x:'Deja secar y retira el exceso.',a:.5,b:.8},{x:'Empareja con lija n.º 120.',a:.8,b:1}]:[
+    {x:`Pon cola fría en cada agujero e introduce un tarugo de madera de 10 mm (${md.dowels} en total). Embútelo con martillo de goma.`,a:0,b:.5},
+    {x:'Corta el sobrante al ras con una sierra japonesa, de hoja flexible y diente fino.',a:.5,b:.8},
+    {x:'Empareja la superficie con lijadora orbital y lija n.º 120.',a:.8,b:1}]});
+  s.push({title:pr==='melamine'?'Pon tapacantos':'Pinta y protege',b:pr==='wood'?[
+    {x:'Aplica el impregnante con brocha o huaipe, con guantes de látex. Deja ver la veta y protege contra hongos y agua.',a:0,b:.5},
+    {x:'Deja secar 30 minutos. Más manos, tono más intenso.',a:.5,b:.6},
+    {x:'Aplica barniz poliuretano con brocha: resiste la humedad del baño y permite limpiar con paño húmedo.',a:.6,b:.92},
+    {x:'Deja secar 2 horas. Usa ambos productos con el mismo solvente (aquí, los dos al agua).',a:.92,b:1}]:pr==='paint'?[
+    {x:'Aplica sellador para MDF en todas las caras y cantos: el canto absorbe mucha humedad.',a:0,b:.5},
+    {x:'Deja secar según la etiqueta y lija suave con n.º 150.',a:.5,b:.6},
+    {x:'Aplica 2 manos de esmalte al agua con brocha o rodillo.',a:.6,b:.92},{x:'Deja secar antes de usar en el baño.',a:.92,b:1}]:[
+    {x:`Pega tapacantos en los cantos visibles (unos ${fmt(md.visEdge)} m) con plancha caliente.`,a:0,b:.9},{x:'Recorta el exceso con cuchillo cartonero y lija fina.',a:.9,b:1}]});
+  if(P.wc)s.push({title:'Repisa sobre el WC',b:[
+    {x:`Con los sobrantes: una tabla de ${fmt(md.Lwc)} × 20 cm y 2 listones de ${fmt(md.Lwc)} × 5 cm, con la misma terminación.`,a:0,b:.2},
+    {x:'Marca en ambos lados largos a 3 cm de los extremos y a 9 mm del borde, y otra a 16 cm hacia el centro. Avellana con broca de 6 mm.',a:.2,b:.35},
+    {x:'Une la tabla con los listones por el canto con tornillos de 1 ⅝". Quedan por debajo, así que no necesitan tarugos.',a:.35,b:.55},
+    {x:'Perfora uno de los listones a 10 cm de cada extremo, al centro, para fijarlo al muro.',a:.55,b:.65},
+    {x:'En cerámica usa broca de punta diamantada de 6 mm, pon tarugos nylon de 6 mm y atornilla la repisa sobre el WC.',a:.65,b:1}]});
+  return s;
+}
+
+/* ---------------- state application ---------------- */
+let STEP=0,T=1,playing=false,STEPS=[];
+const RAW_ROUGH=new THREE.Color(0xC7BEB0),WHITE=new THREE.Color(0xffffff);
+function finishDef(){const list=FINISHES[MD.M.process];return list.find(f=>f.id===P.finish)||list[0]}
+function setFinish(p,sand,a,b){
+  const pr=MD.M.process,f=finishDef();
+  const base=pr==='melamine'?WHITE.clone():RAW_ROUGH.clone().lerp(WHITE,sand);
+  [p.fm,p.em].forEach((m,i)=>{
+    const c=base.clone();let em=new THREE.Color(0);let rough=.85;
+    if(pr==='wood'){c.lerp(new THREE.Color(f.tint),a);em.lerp(new THREE.Color(f.emis),a);rough=lerp(.85,f.rough,b)}
+    else if(pr==='paint'){c.multiplyScalar(lerp(1,.9,a*(1-b)));if(b>0){const want=TEX.paint;if(m.map.image!==want.image){m.map.image=want.image;m.map.needsUpdate=true}c.copy(new THREE.Color(0xB9A792).lerp(new THREE.Color(f.tint),b));em.lerp(new THREE.Color(f.emis),b);rough=lerp(.85,f.rough,b)}
+      else{const want=TEX[i===0?MD.M.tex:MD.M.edge];if(m.map.image!==want.image){m.map.image=want.image;m.map.needsUpdate=true}}}
+    else if(pr==='melamine'){rough=.5;if(i===1){const want=a>.5?TEX.melamina:TEX.chip;if(m.map.image!==want.image){m.map.image=want.image;m.map.needsUpdate=true}}}
+    m.color.copy(c);m.emissive.copy(em);m.roughness=rough;
+  });
+}
+function setPose(p,pos,q){p.mesh.position.copy(pos);p.mesh.quaternion.copy(q)}
+const QI=new Qt();
+function flyPose(p,from,to,u){const e=ease(u);const pos=from.pos.clone().lerp(to.pos,e);pos.y+=Math.sin(Math.PI*e)*18;const q=from.q.clone().slerp(to.q,e);setPose(p,pos,q)}
+function showScrew(s,u,depth=3){const o=s.obj;o.visible=u>0;o.position.copy(s.pos).addScaledVector(s.dir,-(1-ease(u))*depth);}
+
+function applyState(){
+  if(!MD)return;const t=T,st=STEP,md=MD;const {saw,sander,brush,drill}=tools.userData;
+  saw.visible=sander.visible=brush.visible=drill.visible=false;
+  const envOn=P.env;
+  envParts.wall.visible=st!==1&&st!==2;
+  envParts.basin.visible=envOn&&(st===0||st>=5);
+  envParts.wc.visible=envOn&&P.wc&&(st===0||st===6);
+  envParts.wallHoles.forEach(h=>h.visible=P.wc&&(st===0||(st===6&&t>.66)));
+  hollow.visible=st===0;hollow.children.forEach(e=>e.material.opacity=st===0?ease(seg(t,0,.3)):0);
+  const chip=$('#chip');let chipTxt='';
+  const g0=.14,gs=(.96-g0)/md.G;
+  // pieces
+  const modP=PM.filter(p=>p.m>=0),wcP=PM.filter(p=>p.m<0);
+  const layoutQ=QI;
+  const finalOf=p=>({pos:p.final.pos,q:p.final.q});
+  const layoutOf=p=>({pos:p.layoutPos,q:layoutQ});
+  // finish order (top to bottom)
+  const finOrder=[...modP].sort((a,b)=>b.final.pos.y-a.final.pos.y||a.final.pos.x-b.final.pos.x);
+  PM.forEach(p=>{p.mesh.visible=true;if(p.holeMeshes)p.holeMeshes.forEach(h=>h.visible=false)});
+  if(st===0){
+    const slide=ease(seg(t,.35,.7));
+    modP.forEach(p=>{const pos=p.final.pos.clone();pos.z+=(1-slide)*45;setPose(p,pos,p.final.q);p.mesh.visible=slide>0||t>.35;setFinish(p,1,1,1)});
+    modP.forEach(p=>p.mesh.visible=t>=.35);
+    wcP.forEach(p=>{setPose(p,p.final.pos,p.final.q);setFinish(p,1,1,1)});
+  }else if(st===1){
+    const move=ease(seg(t,.72,1));
+    PM.forEach(p=>{const cut=t>=p.cutT?1:0;const sp=p.stockPos.clone();sp.x+=cut*.5;const pos=sp.lerp(p.layoutPos,move);setPose(p,pos,QI);setFinish(p,0,0,0)});
+  }else if(st===2){
+    const order=[...PM].sort((a,b)=>a.layoutPos.z-b.layoutPos.z||a.layoutPos.x-b.layoutPos.x);const N=order.length;
+    order.forEach((p,i)=>{setPose(p,p.layoutPos,QI);const u=seg(t*N,i,i+1);setFinish(p,MD.M.process==='melamine'?1:ease(u),0,0)});
+    const i=Math.min(N-1,Math.floor(t*N)),p=order[i],u=t*N-i;sander.visible=t<1;
+    sander.position.set(p.layoutPos.x-p.L/2+5+(p.L-10)*((u*3)%1),md.t,p.layoutPos.z+Math.sin(u*Math.PI*6)*Math.max(0,p.W/2-4));
+  }else if(st===3){
+    modP.forEach(p=>{const a=g0+p.group*gs,b=a+gs*.7;flyPose(p,layoutOf(p),finalOf(p),seg(t,a,b));setFinish(p,1,0,0);
+      if(p.holeMeshes){const hv=seg(t,.02,g0);p.holeMeshes.forEach((h,i)=>{h.visible=hv>i/p.holeMeshes.length})}});
+    wcP.forEach(p=>{setPose(p,p.layoutPos,QI);setFinish(p,1,0,0)});
+    if(t<g0){const lats=modP.filter(p=>p.kind==='lat');const k=Math.min(lats.length-1,Math.floor(seg(t,0,g0)*lats.length));const p=lats[k];drill.visible=true;drill.position.set(p.layoutPos.x,md.t+6,p.layoutPos.z+14);drill.rotation.set(-Math.PI/2.2,0,0)}
+  }else{
+    modP.forEach(p=>{setPose(p,p.final.pos,p.final.q)});
+    if(st===4){modP.forEach(p=>{setFinish(p,1,0,0);if(p.holeMeshes)p.holeMeshes.forEach(h=>h.visible=false)});wcP.forEach(p=>{setPose(p,p.layoutPos,QI);setFinish(p,1,0,0)})}
+    if(st===5){const N=finOrder.length,pr=MD.M.process;
+      const aT=pr==='melamine'?seg(t,0,.9):seg(t,0,.5),bT=pr==='melamine'?0:seg(t,.6,.92);
+      finOrder.forEach((p,i)=>setFinish(p,1,ease(seg(aT*N,i,i+1)),ease(seg(bT*N,i,i+1))));
+      wcP.forEach(p=>{setPose(p,p.layoutPos,QI);setFinish(p,1,0,0)});
+      const cur=t<.5||(pr==='melamine'&&t<.9)?aT:(t>=.6&&t<.92?bT:-1);
+      if(cur>=0&&cur<1){const i=Math.min(N-1,Math.floor(cur*N)),p=finOrder[i],u=cur*N-i;brush.visible=true;
+        const side=p.kind==='lat'?p.side:0;const fp=p.final.pos;
+        brush.position.set(fp.x+(p.kind==='lat'?side*(md.t/2+1):0),p.kind==='lat'?fp.y+md.Ls*.45-md.Ls*.9*u:fp.y+md.t/2+.5,p.kind==='lat'?fp.z:fp.z+md.D*.45-md.D*.9*u);
+        brush.rotation.set(0,0,p.kind==="lat"?-side*.45:0)}
+      if(pr!=='melamine'&&t>=.5&&t<.6)chipTxt=pr==='wood'?'Secando 30 minutos':'Secando sellador';
+      if(t>=.92)chipTxt=pr==='wood'?'Secando 2 horas':pr==='paint'?'Secando esmalte':'';
+    }
+    if(st===6){modP.forEach(p=>setFinish(p,1,1,1));
+      const fu=seg(t,0,.2);wcP.forEach(p=>setFinish(p,1,fu,fu));
+      const stageOff=new V3(0,-22,38),mv=ease(seg(t,.75,.95));
+      const off=stageOff.clone().multiplyScalar(1-mv);
+      wcP.forEach(p=>{const tgt={pos:p.final.pos.clone().add(off),q:p.final.q};const u=seg(t,.35,.5);if(u<=0)setPose(p,p.layoutPos,QI);else if(mv>0)setPose(p,tgt.pos,tgt.q);else flyPose(p,layoutOf(p),tgt,u)});
+      WCSCR.forEach((s,i)=>{const u=seg(t,.47+i*.004,.55);s.obj.visible=u>0;s.obj.position.copy(s.pos).add(off).addScaledVector(s.dir,-(1-ease(u))*4)});
+      PLUGS.forEach(f=>{const u=seg(t,.66,.74);f.plug.visible=u>0&&u<1;f.plug.position.set(f.pos.x,f.pos.y,lerp(6,0,ease(u)))});
+      WALLSCR.forEach(f=>{const u=seg(t,.95,1);f.obj.visible=u>0;f.obj.position.copy(f.pos).addScaledVector(f.dir,-(1-ease(u))*4)});
+      if(t>.66&&t<.74){drill.visible=true;const f=MD.wallFix[t<.7?0:1]||MD.wallFix[0];if(f){drill.position.set(f.pos.x,f.pos.y,15);drill.rotation.set(0,0,0)}}
+    }
+  }
+  if(st===5||st===4||st===3||st===6||st===0){if(st!==6)wcP.forEach(p=>p.mesh.visible=st===0?P.wc:true)}
+  // screws & dowels
+  const dowelFlush=st===0||st>=5||(st===4&&t>=.8);
+  SCR.forEach(s=>{
+    if(st===0||st>=4){s.obj.visible=!(s.dowel&&(st===0||st>=5||(st===4&&t>.5)));s.obj.position.copy(s.pos)}
+    else if(st===3){const a=g0+s.group*gs+gs*.7,b=g0+(s.group+1)*gs;showScrew(s,seg(t,a,b))}
+    else s.obj.visible=false});
+  if(st===0){SCR.forEach(s=>{if(s.m>=0)s.obj.visible=s.obj.visible&&t>=.35})}
+  const pr=MD.M.process;
+  DOW.forEach((d,i)=>{const s=d.s;
+    if(st<4){d.obj.visible=false;return}
+    let prot=0,show=true;
+    if(st===4){const u=seg(t,.02+i/DOW.length*.35,.1+i/DOW.length*.38);show=u>0;
+      if(pr==='melamine'){d.obj.scale.set(1,1,1);d.obj.position.copy(s.pos).addScaledVector(d.out,(1-ease(u))*4)}
+      else{prot=t<.5?lerp(5,.9,ease(u)):lerp(.9,0,ease(seg(t,.5,.8)));const dep=1;d.obj.scale.set(1,dep+prot,1);d.obj.position.copy(s.pos).addScaledVector(d.out,-dep+(t<.5?(1-ease(u))*4:0))}}
+    else{if(pr==='melamine'){d.obj.scale.set(1,1,1);d.obj.position.copy(s.pos)}else{d.obj.scale.set(1,1.02,1);d.obj.position.copy(s.pos).addScaledVector(d.out,-1)}}
+    if(st===0)show=t>=.35;
+    d.obj.visible=show});
+  // dowel colour follows finish
+  {const f=finishDef();const base=new THREE.Color(pr==='melamine'?0xF6F6F3:pr==='paint'?0xCBBBA2:0xE2C08C);let a=0;
+    if(st===0||st===6)a=1;else if(st===5)a=seg(t,0,.5);
+    if(pr==='wood')base.lerp(new THREE.Color(f.tint).multiply(new THREE.Color(0xE8CFA6)),a*.9);
+    if(pr==='paint'&&(st===0||st===6||(st===5&&t>.6)))base.set(f.tint);
+    MD.dowelMat.color.copy(base)}
+  if(st===4&&t>.8){const lats=modP.filter(p=>p.kind==='lat'&&p.si===0);const u=seg(t,.8,1)*lats.length,i=Math.min(lats.length-1,Math.floor(u)),p=lats[i];
+    if(p){sander.visible=true;const fp=p.final.pos;sander.position.set(fp.x+p.side*(md.t/2),fp.y+Math.sin((u%1)*Math.PI*4)*md.Ls*.35,fp.z);sander.rotation.set(0,0,p.side*Math.PI/2)}}
+  else sander.rotation.set(0,0,0);
+  if(st===4&&pr!=='melamine'&&t>=.5&&t<.8)chipTxt=pr==='wood'?'Cortando tarugos al ras':'Secando masilla';
+  // WC pieces default positions in steps where they don't move
+  if(st!==6){WCSCR.forEach(s=>{s.obj.visible=st===0&&P.wc;s.obj.position.copy(s.pos)});PLUGS.forEach(f=>f.plug.visible=false);WALLSCR.forEach(f=>{f.obj.visible=st===0&&P.wc;f.obj.position.copy(f.pos)})}
+  // waste, lines, saw
+  WASTE.forEach(w=>{w.m.visible=st===1&&t<.74;if(st===1){w.m.material.opacity=1-seg(t,.68,.74)}});
+  LINES.forEach(c=>{const on=st===1&&t<.72;c.line.visible=on&&seg(t,0,.12)>0;if(on){const s=seg(t,0,.12);c.line.scale.set(c.rip?s:1,1,c.rip?1:s)}});
+  if(st===1){const c=MD.cuts.find(c=>t>=c.t0-.02&&t<=c.t1+.004);if(c){saw.visible=true;const u=seg(t,c.t0,c.t1);const p=c.a.clone().lerp(c.b,u);saw.position.set(p.x,md.t,p.z);saw.rotation.set(0,c.rip?0:Math.PI/2,0);saw.userData.blade.rotation.y+=.8}}
+  chip.textContent=chipTxt;chip.classList.toggle('on',!!chipTxt);
+}
+
+/* ---------------- camera ---------------- */
+let camAnim=null;
+function stepBox(){
+  const md=MD,b=new THREE.Box3();
+  const addModules=()=>md.modX.forEach(x=>{b.expandByPoint(new V3(x-md.W/2,0,md.mz-md.D/2));b.expandByPoint(new V3(x+md.W/2,md.H,md.mz+md.D/2))});
+  const addStock=()=>{b.expandByPoint(new V3(-md.st.L/2-10,0,md.zStock));b.expandByPoint(new V3(md.st.L/2+30,md.t,md.zEnd))};
+  const addBasin=()=>{b.expandByPoint(new V3(-md.Bw/2,0,0));b.expandByPoint(new V3(md.Bw/2,md.yb+22,md.Bd))};
+  const addWC=()=>{b.expandByPoint(new V3(md.xWC-md.Lwc/2-10,40,0));b.expandByPoint(new V3(md.xWC+md.Lwc/2+10,md.yWC+12,60))};
+  if(STEP===0){addModules();if(P.env)addBasin();if(P.wc&&P.env)addWC()}
+  else if(STEP===1||STEP===2)addStock();
+  else if(STEP===3){addModules();addStock()}
+  else if(STEP===6){addWC();b.expandByPoint(new V3(md.xWC,md.yWC-30,70))}
+  else{addModules();if(STEP===5&&P.env)addBasin()}
+  return b;
+}
+function frame(instant){
+  const b=stepBox(),c=b.getCenter(new V3()),s=b.getSize(new V3());
+  const flat=STEP===1||STEP===2;
+  const dir=flat?new V3(.12,1.25,.75).normalize():STEP===6?new V3(-.35,.35,1).normalize():new V3(.55,.5,1).normalize();
+  const r=s.length()/2;const asp=camera.aspect;const vf=THREE.MathUtils.degToRad(camera.fov);const hf=2*Math.atan(Math.tan(vf/2)*asp);
+  const dist=r/Math.sin(Math.min(vf,hf)/2)*(flat?.95:.92);
+  const to={pos:c.clone().addScaledVector(dir,dist),tgt:c};
+  if(instant||reduceMotion){camera.position.copy(to.pos);controls.target.copy(to.tgt);controls.update();camAnim=null}
+  else camAnim={t0:performance.now(),fromP:camera.position.clone(),fromT:controls.target.clone(),to};
+}
+
+/* ---------------- 2D plans ---------------- */
+const SVGNS='http://www.w3.org/2000/svg';
+const defs=`<defs><marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,2 L10,5 L0,8" fill="none" stroke="currentColor" stroke-width="1.4"/></marker></defs>`;
+function dimH(x1,x2,y,label,ref){let e='';if(ref!=null)e=`<line class="ext" x1="${x1}" y1="${ref}" x2="${x1}" y2="${y+(y>ref?3:-3)}"/><line class="ext" x1="${x2}" y1="${ref}" x2="${x2}" y2="${y+(y>ref?3:-3)}"/>`;
+  return `<g class="dim" style="color:var(--ink)">${e}<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" marker-start="url(#ar)" marker-end="url(#ar)"/><text x="${(x1+x2)/2}" y="${y-3}" text-anchor="middle">${label}</text></g>`}
+function dimV(y1,y2,x,label,ref,left){let e='';if(ref!=null)e=`<line class="ext" x1="${ref}" y1="${y1}" x2="${x+(x>ref?3:-3)}" y2="${y1}"/><line class="ext" x1="${ref}" y1="${y2}" x2="${x+(x>ref?3:-3)}" y2="${y2}"/>`;
+  const tx=left?x-3:x+3,my=(y1+y2)/2;
+  return `<g class="dim" style="color:var(--ink)">${e}<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" marker-start="url(#ar)" marker-end="url(#ar)"/><text x="${tx}" y="${my}" transform="rotate(-90 ${tx} ${my})" text-anchor="middle">${label}</text></g>`}
+function svgWrap(w,h,body){return `<svg xmlns="${SVGNS}" viewBox="0 0 ${w} ${h}" role="img">${defs}${body}</svg>`}
+function rect(x,y,w,h,cls='obj'){return `<rect class="${cls}" x="${x}" y="${y}" width="${Math.max(.1,w)}" height="${Math.max(.1,h)}"/>`}
+
+function drawPlans(){
+  const md=MD,W=md.W,H=md.H,D=md.D,t=md.t;
+  // front
+  {const s=Math.min(110/W,200/H),ox=46,oy=12,X=x=>ox+(x+W/2)*s,Y=y=>oy+(H-y)*s;let b='';
+    b+=rect(X(-W/2),Y(H),t*s,md.Ls*s)+rect(X(W/2-t),Y(H),t*s,md.Ls*s);
+    md.horiz.forEach(h=>{b+=rect(X(-md.Wi/2),Y(md.legH+h.y+t/2),md.Wi*s,t*s,'obj2')});
+    [-1,1].forEach(sx=>{const lx=sx<0?-W/2+1:W/2-1-md.legS;b+=rect(X(lx),Y(t),md.legS*s,t*s,'obj2')});
+    b+=dimH(X(-W/2),X(W/2),Y(0)+16,`${fmt(W)}`,Y(0));
+    b+=dimV(Y(0),Y(H),X(W/2)+16,`${fmt(H)}`,X(W/2));
+    // clear openings chain on left
+    const ys=md.horiz.map(h=>md.legH+h.y);let chain='';
+    for(let i=0;i<ys.length-1;i++){const a=ys[i]+t/2,c=ys[i+1]-t/2;chain+=dimV(Y(a),Y(c),X(-W/2)-10,fmt(c-a),X(-W/2),true)}
+    chain+=dimV(Y(0),Y(md.legH),X(-W/2)-10,fmt(md.legH),X(-W/2),true);
+    b+=chain;const h=oy+H*s+30;$('#svgFront').innerHTML=svgWrap(ox+W*s+34,h,b+`<text class="lbl" x="4" y="${h-3}">cm, luces libres a la izquierda</text>`)}
+  // side
+  {const s=Math.min(130/D,200/H),ox=14,oy=24,X=z=>ox+z*s,Y=y=>oy+(H-y)*s;let b='';let zo=0;
+    md.sideStrips.forEach(w=>{b+=rect(X(zo),Y(H),w*s,md.Ls*s);zo+=w});
+    md.horiz.forEach(h=>{const y=Y(md.legH+h.y);b+=`<line class="hid" x1="${X(0)}" y1="${y}" x2="${X(D)}" y2="${y}"/>`});
+    [1,D-1-md.legS].forEach(z=>b+=rect(X(z),Y(t),md.legS*s,t*s,'obj2'));
+    zo=0;md.sideStrips.forEach(w=>{if(md.sideStrips.length>1)b+=dimH(X(zo),X(zo+w),oy-8,fmt(w),Y(H));zo+=w});
+    b+=dimH(X(0),X(D),Y(0)+16,fmt(D),Y(0));
+    b+=dimV(Y(md.legH),Y(H),X(D)+14,`${fmt(md.Ls)} lateral`,X(D));
+    const h=oy+H*s+30;$('#svgSide').innerHTML=svgWrap(ox+D*s+30,h,b+`<text class="lbl" x="${X(0)}" y="${h-3}">muro ← → frente</text>`)}
+  // top
+  {const s=Math.min(120/W,150/D),ox=16,oy=30,X=x=>ox+(x+W/2)*s,Z=z=>oy+z*s;let b='';
+    b+=rect(X(-md.Wi/2),Z(0),md.Wi*s,D*s,'obj2');
+    [-1,1].forEach(sx=>{let zo=0;md.sideStrips.forEach(w=>{b+=rect(sx<0?X(-W/2):X(W/2-t),Z(zo),t*s,w*s);zo+=w})});
+    let xo=-md.Wi/2;md.horizStrips.slice(0,-1).forEach(w=>{xo+=w;b+=`<line class="hid" x1="${X(xo)}" y1="${Z(0)}" x2="${X(xo)}" y2="${Z(D)}"/>`});
+    b+=dimH(X(-W/2),X(W/2),Z(D)+14,fmt(W),Z(D));b+=dimH(X(-md.Wi/2),X(md.Wi/2),Z(0)-6,`${fmt(md.Wi)} int.`);
+    b+=dimV(Z(0),Z(D),X(W/2)+14,fmt(D),X(W/2));
+    const h=oy+D*s+26;$('#svgTop').innerHTML=svgWrap(ox+W*s+32,h,`<text class="lbl" x="${X(0)}" y="9" text-anchor="middle">muro</text>`+b)}
+  // parts (per module)
+  {const groups={};MD.pieces.filter(p=>p.m===0).forEach(p=>{const k=`${p.label}|${fmt(p.L)}|${fmt(p.W)}`;groups[k]=groups[k]||{p,n:0};groups[k].n++});
+    const arr=Object.values(groups);const maxL=Math.max(...arr.map(g=>g.p.L));const s=120/maxL;let y=8,b='';
+    arr.forEach(g=>{const p=g.p,w=p.L*s,h=Math.max(3,p.W*s);b+=rect(10,y,w,h,p.kind==='lat'?'obj':'obj2');
+      b+=`<text x="${10+w+4}" y="${y+h/2+3}">${g.n}×</text>`;b+=`<text class="lbl" x="10" y="${y+h+10}">${p.label}: ${fmt(p.L)} × ${fmt(p.W)} × ${fmt(t)} cm</text>`;y+=h+18});
+    $('#svgParts').innerHTML=svgWrap(190,y,b)}
+  drawCutPlan();
+}
+function drawCutPlan(){
+  const md=MD,st=md.st,s=Math.min(3.4,560/st.L),gap=16;let y=6,b='';
+  md.stocks.forEach((sk,i)=>{const h=st.W*s;b+=`<text class="lbl" x="0" y="${y+8}">${st.kind==='board'?'Tabla':'Plancha'} ${i+1}</text>`;y+=12;
+    b+=rect(0,y,st.L*s,h,'waste');
+    sk.lanes.forEach(ln=>ln.items.forEach(it=>{const p=it.piece,x=it.x*s,yy=y+ln.z*s,w=p.L*s,hh=p.W*s;
+      b+=`<rect x="${x}" y="${yy}" width="${w}" height="${hh}" fill="${ROLE_COLORS[p.kind==='lat'?'lat':p.kind==='leg'?'leg':p.kind.startsWith('wc')?'wc':'hor']}" stroke="var(--blue)" stroke-width=".6" opacity=".85"/>`;
+      if(w>34&&hh>9)b+=`<text x="${x+w/2}" y="${yy+hh/2+3.5}" text-anchor="middle" style="font-size:${hh>18?10:8}px;fill:#1c1a14">${fmt(p.L)}×${fmt(p.W)}</text>`}));
+    b+=dimH(0,st.L*s,y+h+10,`${st.L} cm`,y+h);y+=h+gap+8});
+  $('#svgCut').innerHTML=svgWrap(st.L*s+4,y,b)+`<p class="src">Corte con disco de 3 mm de espesor considerado entre piezas. Las zonas rayadas son sobrante${P.wc?'; parte de ellas se usa en la repisa del WC':''}.</p>`;
+}
+
+/* ---------------- materials list ---------------- */
+let ITEMS=[],SEL=0;
+function computeItems(){
+  const md=MD,M=md.M,pr=M.process,A=md.area,items=[];
+  const galons=(L)=>Math.max(1,Math.ceil(L/.946));
+  items.push({grp:'Madera',key:'stock',name:M.stock.name,sub:`Rinde el plan de corte de abajo`,qty:md.stocks.length,unit:M.stock.unit,dims:`${M.stock.L} × ${M.stock.W} × ${fmt(M.t)} cm`,build:()=>boardObj(M.stock.L,M.stock.W,M.t,true),spec:()=>specBox(M.stock.L,M.stock.W,M.t)});
+  const groups={};md.pieces.forEach(p=>{const k=`${p.label}|${fmt(p.L)}|${fmt(p.W)}`;groups[k]=groups[k]||{p,n:0};groups[k].n++});
+  Object.values(groups).forEach(g=>{const p=g.p;items.push({grp:'Piezas cortadas',key:'p'+p.id,name:p.label,sub:p.kind==='lat'?'Costado del mueble':p.kind==='leg'?'Bajo la base, a 1 cm de los bordes':p.kind==='hor'?'Largo = profundidad del mueble':'Para la repisa sobre el WC',qty:g.n,unit:'piezas',dims:`${fmt(p.L)} × ${fmt(p.W)} × ${fmt(md.t)} cm`,build:()=>boardObj(p.L,p.W,md.t,false),spec:()=>specBox(p.L,p.W,md.t)})});
+  items.push({grp:'Fijaciones',key:'s158',name:'Tornillo punta fina negro 6 × 1 ⅝"',sub:'Uniones de laterales, base, tapa y repisas',qty:md.s158,unit:'unidades',dims:'Ø 3,5 mm × 41 mm',build:()=>makeScrew(4.1),spec:()=>specScrew(41)});
+  items.push({grp:'Fijaciones',key:'s114',name:'Tornillo 6 × 1 ¼"',sub:'2 por pata, en diagonal',qty:md.s114,unit:'unidades',dims:'Ø 3,5 mm × 32 mm',build:()=>makeScrew(3.2),spec:()=>specScrew(32)});
+  if(pr==='wood')items.push({grp:'Fijaciones',key:'dowel',name:'Tarugo de madera 10 mm',sub:'Tapa cada tornillo visible; se corta al ras',qty:md.dowels,unit:'unidades',dims:'Ø 10 mm × 40 mm',build:()=>dowelObj(),spec:()=>specCyl(10,40,'tarugo')});
+  if(pr==='melamine')items.push({grp:'Fijaciones',key:'caps',name:'Tapa adhesiva para tornillo, blanca',sub:'Una por cabeza visible',qty:md.dowels,unit:'unidades',dims:'Ø 13 mm',build:()=>capsObj(),spec:()=>specCyl(13,1.5,'tapa')});
+  if(pr!=='melamine')items.push({grp:'Fijaciones',key:'glue',name:'Cola fría (adhesivo vinílico)',sub:pr==='wood'?'Para patas y tarugos':'Para patas',qty:P.modules>3?2:1,unit:'frasco 250 g',dims:'250 g',build:()=>bottleObj(),spec:()=>specCan('250 g','frasco')});
+  if(P.wc){items.push({grp:'Fijaciones',key:'plug',name:'Tarugo nylon 6 mm',sub:'Fijar la repisa al muro',qty:2,unit:'unidades',dims:'Ø 6 mm × 30 mm',build:()=>makeNylonPlug(),spec:()=>specCyl(6,30,'tarugo nylon')});
+    items.push({grp:'Fijaciones',key:'wscrew',name:'Tornillo para tarugo 8 × 1 ½"',sub:'Pasa por el listón y entra al tarugo',qty:2,unit:'unidades',dims:'Ø 4 mm × 38 mm',build:()=>makeScrew(5,0x9aa0a4),spec:()=>specScrew(38)})}
+  if(pr!=='melamine'){const l120=Math.ceil(A*1.35/.8)+1,l150=Math.ceil(A/1.6)+1;
+    items.push({grp:'Terminación',key:'l120',name:'Lija para madera grano 120',sub:'Pliego 9" × 11", se corta en 4 para lijadora ¼"',qty:l120,unit:'pliegos',dims:'22,9 × 27,9 cm',build:()=>sandObj(0x9A6B3F),spec:()=>specSheet()});
+    items.push({grp:'Terminación',key:'l150',name:'Lija para madera grano 150',sub:'Entre manos y repasos finos',qty:l150,unit:'pliegos',dims:'22,9 × 27,9 cm',build:()=>sandObj(0x6D7B86),spec:()=>specSheet()})}
+  if(pr==='wood'){const ls=A*2/10*1.1,lb=A*2/12*1.1,f=finishDef();
+    if(f.id!=='natural')items.push({grp:'Terminación',key:'stain',name:`Protector impregnante (stain) ${f.id==='blanco'?'blanco':'nogal'}, base agua`,sub:`${fmt(A,2)} m² × 2 manos, ~10 m²/L`,qty:galons(ls),unit:'envases ¼ gl',dims:`${fmt(ls,2)} L necesarios`,build:()=>canObj(f.tint,'STAIN'),spec:()=>specCan(`${fmt(ls,2)} L`,'¼ gl = 0,946 L')});
+    items.push({grp:'Terminación',key:'varnish',name:'Barniz poliuretano base agua',sub:`${fmt(A,2)} m² × 2 manos, ~12 m²/L`,qty:galons(lb),unit:'envases ¼ gl',dims:`${fmt(lb,2)} L necesarios`,build:()=>canObj(0xE8D9B8,'BARNIZ'),spec:()=>specCan(`${fmt(lb,2)} L`,'¼ gl = 0,946 L')})}
+  if(pr==='paint'){const ls=A/8*1.1,le=A*2/12*1.1,f=finishDef();
+    items.push({grp:'Terminación',key:'sealer',name:'Sellador para MDF',sub:`${fmt(A,2)} m² × 1 mano, ~8 m²/L`,qty:galons(ls),unit:'envases ¼ gl',dims:`${fmt(ls,2)} L`,build:()=>canObj(0xDDD5C8,'SELLADOR'),spec:()=>specCan(`${fmt(ls,2)} L`,'¼ gl = 0,946 L')});
+    items.push({grp:'Terminación',key:'enamel',name:`Esmalte al agua (${f.name.replace('Esmalte al agua ','')})`,sub:`${fmt(A,2)} m² × 2 manos, ~12 m²/L`,qty:galons(le),unit:'envases ¼ gl',dims:`${fmt(le,2)} L`,build:()=>canObj(f.tint,'ESMALTE'),spec:()=>specCan(`${fmt(le,2)} L`,'¼ gl = 0,946 L')})}
+  if(pr==='melamine'){const m=Math.ceil(md.visEdge*1.1);items.push({grp:'Terminación',key:'edge',name:'Tapacanto blanco 19 mm con adhesivo',sub:'Cantos visibles + 10 % de margen',qty:m,unit:'metros',dims:'19 mm × 0,4 mm',build:()=>edgeRollObj(),spec:()=>specCyl(19,m*1000,'tapacanto')})}
+  ITEMS=items;
+}
+function woodMat(L,W){const f=TEX[MD.M.tex].clone();f._clone=true;f.needsUpdate=true;f.repeat.set(Math.max(.3,L/90),Math.max(.3,W/40));const e=TEX[MD.M.edge].clone();e._clone=true;e.needsUpdate=true;e.repeat.set(Math.max(.3,L/60),1);
+  const fm=new THREE.MeshStandardMaterial({map:f,roughness:.8}),em=new THREE.MeshStandardMaterial({map:e,roughness:.9});return [em,em,fm,fm,em,em]}
+function boardObj(L,W,t,plan){const g=new THREE.Group();const mats=woodMat(L,W);
+  if(plan){const c=document.createElement('canvas');c.width=1024;c.height=Math.max(64,Math.round(1024*W/L));const x=c.getContext('2d');x.drawImage(mats[2].map.image,0,0,c.width,c.height);
+    const sk=MD.stocks[0],s=c.width/L;x.strokeStyle='rgba(20,20,20,.85)';x.lineWidth=2;x.setLineDash([8,5]);
+    sk.lanes.forEach(ln=>ln.items.forEach(it=>{x.strokeRect(it.x*s,ln.z*s,it.piece.L*s,it.piece.W*s)}));
+    const tx=new THREE.CanvasTexture(c);tx.encoding=THREE.sRGBEncoding;tx._clone=true;mats[2]=new THREE.MeshStandardMaterial({map:tx,roughness:.8})}
+  const m=new THREE.Mesh(new THREE.BoxGeometry(L,t,W),mats);m.castShadow=true;g.add(m);return g}
+function dowelObj(){const g=new THREE.Group();const d=makeDowel(.5,4);d.position.y=-2;g.add(d);for(let i=0;i<5;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(.5,.03,4,18),new THREE.MeshStandardMaterial({color:0xB8955F}));r.rotation.x=Math.PI/2;r.position.y=-1.6+i*.8;g.add(r)}g.rotation.z=.9;return g}
+function capsObj(){const g=new THREE.Group();const sh=new THREE.Mesh(new THREE.BoxGeometry(8,.05,5),new THREE.MeshStandardMaterial({color:0xE9E4D8}));g.add(sh);
+  for(let i=0;i<5;i++)for(let j=0;j<3;j++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.65,.65,.15,20),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.4}));c.position.set(-3.2+i*1.6,.1,-1.6+j*1.6);g.add(c)}return g}
+function bottleObj(){const pr=[[0,0],[3,0],[3.2,.3],[3.2,9],[2.6,10.5],[1.2,11.5],[1.1,12.4],[0,12.4]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const g=new THREE.Group();const b=new THREE.Mesh(new THREE.LatheGeometry(pr,32),new THREE.MeshStandardMaterial({color:0xF5F5F2,roughness:.4}));g.add(b);
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(1.1,2.4,20),new THREE.MeshStandardMaterial({color:0xE06A1B}));cap.position.y=13.6;g.add(cap);
+  const lab=new THREE.Mesh(new THREE.CylinderGeometry(3.25,3.25,4.5,32,1,true),new THREE.MeshStandardMaterial({color:0x2F6FB0,side:THREE.DoubleSide}));lab.position.y=4.8;g.add(lab);return g}
+function canObj(col,txt){const g=new THREE.Group();const c=document.createElement('canvas');c.width=512;c.height=160;const x=c.getContext('2d');
+  x.fillStyle='#'+new THREE.Color(col).getHexString();x.fillRect(0,0,512,160);x.fillStyle='rgba(0,0,0,.72)';x.fillRect(0,54,512,56);x.fillStyle='#fff';x.font='700 40px Archivo, Arial, sans-serif';x.textAlign='center';x.fillText(txt,256,96);
+  const tx=new THREE.CanvasTexture(c);tx.encoding=THREE.sRGBEncoding;tx._clone=true;
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(5,5,11,40,1,true),new THREE.MeshStandardMaterial({map:tx,roughness:.5,side:THREE.DoubleSide}));body.position.y=5.5;g.add(body);
+  const lid=new THREE.Mesh(new THREE.CylinderGeometry(5.05,5.05,.4,40),matMetal(0xb9bdc0));lid.position.y=11.1;g.add(lid);
+  const bot=lid.clone();bot.position.y=0;g.add(bot);
+  [0,11].forEach(y=>{const r=new THREE.Mesh(new THREE.TorusGeometry(5.05,.18,8,40),matMetal(0xb9bdc0));r.rotation.x=Math.PI/2;r.position.y=y+.2;g.add(r)});
+  const h=new THREE.Mesh(new THREE.TorusGeometry(4.2,.12,6,30,Math.PI),matMetal(0x999999));h.position.y=11.3;g.add(h);return g}
+function sandObj(col){const g=new THREE.Group();const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');const r=rnd(3);x.fillStyle='#'+new THREE.Color(col).getHexString();x.fillRect(0,0,256,256);
+  for(let i=0;i<9000;i++){x.fillStyle=`rgba(${r()<.5?'0,0,0':'255,255,255'},${r()*.25})`;x.fillRect(r()*256,r()*256,1.5,1.5)}
+  const tx=new THREE.CanvasTexture(c);tx.encoding=THREE.sRGBEncoding;tx._clone=true;
+  const s=new THREE.Mesh(new THREE.BoxGeometry(22.9,.08,27.9),[0,1,2,3,4,5].map(i=>new THREE.MeshStandardMaterial(i===2?{map:tx,roughness:1}:{color:0xEDE7D8})));
+  s.rotation.x=.08;g.add(s);const s2=s.clone();s2.position.set(1.5,.25,1);s2.rotation.y=.15;g.add(s2);return g}
+function edgeRollObj(){const g=new THREE.Group();const pts=[new THREE.Vector2(3,-.95),new THREE.Vector2(6,-.95),new THREE.Vector2(6,.95),new THREE.Vector2(3,.95),new THREE.Vector2(3,-.95)];
+  const r=new THREE.Mesh(new THREE.LatheGeometry(pts,48),new THREE.MeshStandardMaterial({color:0xF7F7F4,roughness:.5,side:THREE.DoubleSide}));g.add(r);
+  const core=new THREE.Mesh(new THREE.CylinderGeometry(3,3,1.95,32,1,true),new THREE.MeshStandardMaterial({color:0xA88A5E,side:THREE.DoubleSide}));g.add(core);
+  const tail=new THREE.Mesh(new THREE.BoxGeometry(10,1.9,.06),new THREE.MeshStandardMaterial({color:0xF7F7F4}));tail.position.set(5,0,6);g.add(tail);g.rotation.x=Math.PI/2.4;return g}
+
+/* 2D specs for materials */
+function specBox(L,W,t){const s=Math.min(230/L,90/W),w=L*s,h=W*s,ox=16,oy=24,th=Math.max(3,t*s*3);let b=rect(ox,oy,w,h,'obj2');
+  b+=rect(ox,oy+h+26,w,th,'obj');b+=dimH(ox,ox+w,oy-8,`${fmt(L)} cm`,oy);b+=dimV(oy,oy+h,ox+w+12,`${fmt(W)}`,ox+w);
+  b+=`<text x="${ox+w+8}" y="${oy+h+26+th/2+4}">${fmt(t)} cm espesor</text><text class="lbl" x="${ox}" y="${oy+h+20}">canto (espesor ×3 para leerlo)</text>`;
+  return svgWrap(ox+w+110,oy+h+26+th+14,b)}
+function specScrew(mm){const s=4,L=mm*s,ox=30,oy=30;let b=`<path class="obj2" d="M${ox},${oy-7} L${ox+8},${oy-2} L${ox+L-10},${oy-2} L${ox+L},${oy} L${ox+L-10},${oy+2} L${ox+8},${oy+2} L${ox},${oy+7} Z"/>`;
+  for(let x=ox+14;x<ox+L-12;x+=5)b+=`<line class="ext" x1="${x}" y1="${oy-2.5}" x2="${x+3}" y2="${oy+2.5}"/>`;
+  b+=dimH(ox,ox+L,oy+22,`${mm} mm`,oy+7);b+=dimV(oy-7,oy+7,ox-10,'cabeza',ox,true);return svgWrap(ox+L+20,oy+34,b)}
+function specCyl(d,l,name){const s=Math.min(200/Math.max(l,d),6),ox=40,oy=20,w=Math.min(l*s,220),h=Math.max(8,d*s*.6);let b=rect(ox,oy,w,h,'obj2');
+  b+=dimH(ox,ox+w,oy+h+14,l>=1000?`${fmt(l/1000)} m`:`${fmt(l)} mm`,oy+h);b+=dimV(oy,oy+h,ox-10,`Ø ${d} mm`,ox,true);return svgWrap(ox+w+20,oy+h+26,b+`<text class="lbl" x="${ox}" y="${oy-6}">${name}</text>`)}
+function specCan(cap,note){let b=`<rect class="obj2" x="30" y="14" width="70" height="80" rx="4"/><text x="65" y="60" text-anchor="middle">${cap}</text>`;b+=`<text class="lbl" x="112" y="56">${note}</text>`;return svgWrap(240,104,b)}
+function specSheet(){return specBox(22.9,27.9,.1)}
+
+function renderMaterialList(){
+  const f=finishDef();const st=MD.st;
+  $('#matLead').textContent=`Para ${P.modules} ${P.modules===1?'mueble':'muebles'} de ${fmt(MD.W)} × ${fmt(MD.D)} × ${fmt(MD.H)} cm en ${MD.M.short}${P.wc?' y la repisa del WC':''}. Toca un material para verlo en 3D con sus cotas.`;
+  let html='',g='';
+  ITEMS.forEach((it,i)=>{if(it.grp!==g){g=it.grp;html+=`<div class="mgroup">${g}</div>`}
+    html+=`<button type="button" class="mitem" data-i="${i}" aria-pressed="${i===SEL}"><img alt="" data-thumb="${i}" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="><span><b>${it.name}</b><small>${it.sub}</small><span class="dims2d">${it.dims}</span></span><span class="qty">${it.qty}<span>${it.unit}</span></span></button>`});
+  $('#mlist').innerHTML=html;
+  $('#mlist').querySelectorAll('.mitem').forEach(b=>b.addEventListener('click',()=>{SEL=+b.dataset.i;$('#mlist').querySelectorAll('.mitem').forEach(x=>x.setAttribute('aria-pressed',x===b));showItem()}));
+  const pr=MD.M.process;
+  const tl=['Sierra circular (inalámbrica en la web) con disco de 60 dientes; ingleteadora con disco de 80 dientes si tienes','Taladro atornillador y broca avellanadora de 6 mm','Lijadora orbital de ¼"','Escuadra, huincha y lápiz carpintero','Guantes, lentes de seguridad y respirador'];
+  if(pr==='wood')tl.push('Martillo de goma y sierra japonesa para los tarugos','Set de brochas o huaipe y guantes de látex');
+  if(pr==='paint')tl.push('Espátula para masilla, brocha o rodillo de espuma');
+  if(pr==='melamine')tl.push('Plancha de ropa para tapacantos y cuchillo cartonero');
+  if(P.wc)tl.push('Broca con punta diamantada de 6 mm para cerámica');
+  $('#tools').innerHTML=tl.map(x=>`<li>${x}</li>`).join('');
+  showItem();
+}
+
+/* material viewer */
+let mv=null;
+function initMV(){
+  const el=$('#mcanvas');const r=new THREE.WebGLRenderer({antialias:true});r.setPixelRatio(Math.min(devicePixelRatio,2));r.outputEncoding=THREE.sRGBEncoding;el.prepend(r.domElement);
+  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x888888,.9));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(3,5,4);sc.add(dl);
+  const cam=new THREE.PerspectiveCamera(35,1,.1,2000);const ct=new THREE.OrbitControls(cam,r.domElement);ct.enableDamping=true;ct.autoRotate=!reduceMotion;ct.autoRotateSpeed=1.6;
+  const th=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,alpha:true});th.setSize(128,128);th.outputEncoding=THREE.sRGBEncoding;
+  mv={r,scene:sc,cam,ct,obj:null,th};readTheme();
+}
+function fitObj(obj,cam,ct){const b=new THREE.Box3().setFromObject(obj),c=b.getCenter(new V3()),s=b.getSize(new V3()).length();
+  obj.position.sub(c);const d=s/2/Math.sin(THREE.MathUtils.degToRad(cam.fov)/2)*.95;cam.position.set(d*.55,d*.5,d*.7);cam.near=d/100;cam.far=d*10;cam.updateProjectionMatrix();if(ct){ct.target.set(0,0,0);ct.update()}else cam.lookAt(0,0,0)}
+function showItem(){if(!mv)return;const it=ITEMS[SEL]||ITEMS[0];if(!it)return;
+  if(mv.obj){mv.scene.remove(mv.obj);disposeGroup(mv.obj)}const wrap=new THREE.Group();wrap.add(it.build());mv.obj=wrap;mv.scene.add(wrap);fitObj(wrap,mv.cam,mv.ct);
+  $('#mcap').innerHTML=`${it.name}<small>${it.qty} ${it.unit} · ${it.dims}</small>`.replace(' · ',', ');
+  $('#mspec').innerHTML=it.spec();}
+let thumbTimer=null;
+function scheduleThumbs(){clearTimeout(thumbTimer);thumbTimer=setTimeout(makeThumbs,250)}
+function makeThumbs(){if(!mv)return;const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x888888,.95));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(3,5,4);sc.add(dl);
+  const cam=new THREE.PerspectiveCamera(35,1,.1,2000);
+  ITEMS.forEach((it,i)=>{const w=new THREE.Group();w.add(it.build());sc.add(w);fitObj(w,cam);mv.th.render(sc,cam);const url=mv.th.domElement.toDataURL('image/png');sc.remove(w);disposeGroup(w);
+    const img=document.querySelector(`img[data-thumb="${i}"]`);if(img)img.src=url})}
+
+/* ---------------- UI ---------------- */
+function renderStepsUI(){
+  STEPS=stepsText(MD);if(STEP>=STEPS.length)STEP=STEPS.length-1;
+  $('#tabs').innerHTML=STEPS.map((s,i)=>`<button role="tab" class="tab" aria-selected="${i===STEP}" data-s="${i}"><span class="n">${i===0?'0':i}</span>${s.title}</button>`).join('');
+  $('#tabs').querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>goStep(+b.dataset.s,true)));
+  renderBullets();
+}
+function renderBullets(){
+  const s=STEPS[STEP];$('#vpTitle').textContent=(STEP===0?'':`Paso ${STEP}: `)+s.title;
+  $('#bullets').innerHTML=s.b.map((b,i)=>`<li data-i="${i}">${b.x}</li>`).join('');
+  $('#bullets').querySelectorAll('li').forEach(li=>li.addEventListener('click',()=>{T=s.b[+li.dataset.i].a+.001;setPlaying(true)}));
+  updateBullets();
+}
+function updateBullets(){const s=STEPS[STEP];if(!s)return;$('#bullets').querySelectorAll('li').forEach((li,i)=>{const b=s.b[i];li.classList.toggle('on',T>=b.a&&(T<b.b||(b.b>=1&&T>=1)));li.classList.toggle('done',T>=b.b&&b.b<1)});
+  $('#tape').value=Math.round(T*1000);$('#tlabel').textContent=Math.round(T*100)+'%'}
+function goStep(i,autoplay){STEP=Math.max(0,Math.min(STEPS.length-1,i));T=0;
+  $('#tabs').querySelectorAll('.tab').forEach((b,k)=>b.setAttribute('aria-selected',k===STEP));
+  const tab=$('#tabs').children[STEP];if(tab)tab.scrollIntoView({block:'nearest',inline:'nearest'});
+  renderBullets();applyState();frame(false);setPlaying(autoplay&&!reduceMotion);if(reduceMotion&&autoplay){T=1;applyState();updateBullets()}}
+function setPlaying(v){playing=v;$('#play').textContent=v?'❚❚':(T>=1?'↻':'▶');$('#play').setAttribute('aria-label',v?'Pausar':'Reproducir')}
+$('#play').addEventListener('click',()=>{if(playing)setPlaying(false);else{if(T>=1)T=0;setPlaying(true)}});
+$('#prev').addEventListener('click',()=>goStep(STEP-1,true));$('#next').addEventListener('click',()=>goStep(STEP+1,true));
+$('#tape').addEventListener('input',e=>{T=e.target.value/1000;setPlaying(false);applyState();updateBullets()});
+$('#recenter').addEventListener('click',()=>frame(false));
+
+function warnings(){const md=MD,w=[];
+  if(md.horizStrips.length>1)w.push(`Con este ancho, base, tapa y repisas necesitan ${md.horizStrips.length} franjas encoladas de ${fmt(md.horizStrips[0])} cm: considera una tabla más ancha o terciado.`);
+  const small=md.sideStrips.filter(x=>x<6);if(md.isBoard&&small.length)w.push('Hay una franja lateral muy angosta; ajusta el largo a múltiplos cercanos a 20 cm.');
+  const gaps=[];for(let i=0;i<md.horiz.length-1;i++)gaps.push(md.horiz[i+1].y-md.horiz[i].y-md.t);if(Math.min(...gaps)<8)w.push('Las repisas quedan a menos de 8 cm entre sí; reduce la cantidad o sube el alto.');
+  if(P.env&&md.H+2>md.yb-2)w.push('El mueble es más alto que la bajada típica de un lavamanos de pedestal.');
+  $('#warn').textContent=w.join(' ')}
+
+function syncInputs(){['H','W','D'].forEach(k=>{$('#n'+k).value=P[k];$('#r'+k).value=P[k]});$('#oShelves').textContent=P.shelves;$('#oModules').textContent=P.modules;$('#cWC').checked=P.wc;
+  $('#mats').querySelectorAll('input').forEach(i=>i.checked=i.value===P.mat);
+  const list=FINISHES[MATS[P.mat].process];if(!list.find(f=>f.id===P.finish))P.finish=list[0].id;
+  $('#finish').innerHTML=list.map(f=>`<option value="${f.id}" ${f.id===P.finish?'selected':''}>${f.name}</option>`).join('');$('#finish').disabled=list.length<2}
+$('#mats').innerHTML=Object.entries(MATS).map(([k,m])=>`<label class="mat"><input type="radio" name="mat" value="${k}"><span class="swatch" style="background:${m.sw}"></span><span><b>${m.name}</b><small>${m.note}</small></span></label>`).join('');
+let rebuildTimer=null;
+function rebuild(immediate){clearTimeout(rebuildTimer);const go=()=>{const keepT=T;
+  MD=compute();buildEnv(MD);buildWork(MD);renderStepsUI();T=keepT;drawPlans();computeItems();renderMaterialList();scheduleThumbs();warnings();applyState();updateBullets();frame(false)};
+  if(immediate)go();else rebuildTimer=setTimeout(go,90)}
+['H','W','D'].forEach(k=>{const lim={H:[30,120],W:[15,60],D:[20,60]}[k];
+  const set=v=>{v=parseFloat(String(v).replace(',','.'));if(isNaN(v))return;P[k]=Math.min(lim[1],Math.max(lim[0],Math.round(v*10)/10));$('#n'+k).value=P[k];$('#r'+k).value=P[k];rebuild()};
+  $('#r'+k).addEventListener('input',e=>set(e.target.value));$('#n'+k).addEventListener('change',e=>set(e.target.value))});
+document.querySelectorAll('.stepper button').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.k,d=+b.dataset.d;const lim=k==='shelves'?[0,5]:[1,4];P[k]=Math.min(lim[1],Math.max(lim[0],P[k]+d));syncInputs();rebuild(true)}));
+$('#mats').addEventListener('change',e=>{P.mat=e.target.value;syncInputs();rebuild(true)});
+$('#finish').addEventListener('change',e=>{P.finish=e.target.value;computeItems();renderMaterialList();scheduleThumbs();applyState()});
+$('#cWC').addEventListener('change',e=>{P.wc=e.target.checked;rebuild(true)});
+$('#c2d').addEventListener('change',e=>{P.show2d=e.target.checked;$('#stageGrid').classList.toggle('no-plans',!P.show2d);$('#mgrid').classList.toggle('no-plans',!P.show2d);$('#mspecWrap').hidden=!P.show2d;setTimeout(resize,30)});
+$('#cEnv').addEventListener('change',e=>{P.env=e.target.checked;applyState();warnings();frame(false)});
+$('#useHueco').addEventListener('click',()=>{const g=id=>parseFloat(String($(id).value).replace(',','.'));const h=g('#hH'),w=g('#hW'),d=g('#hD');
+  if([h,w,d].some(isNaN)){$('#warn').textContent='Ingresa alto, ancho y largo del hueco en centímetros.';return}
+  P.H=Math.min(120,Math.max(30,h-2));P.W=Math.min(60,Math.max(15,w-2));P.D=Math.min(60,Math.max(20,d-2));syncInputs();rebuild(true)});
+
+/* ---------------- loop ---------------- */
+function resize(){const w=vp.clientWidth,h=vp.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+  if(mv){const e=$('#mcanvas');mv.r.setSize(e.clientWidth,e.clientHeight,false);mv.cam.aspect=e.clientWidth/e.clientHeight;mv.cam.updateProjectionMatrix()}}
+new ResizeObserver(resize).observe(vp);new ResizeObserver(resize).observe($('#mcanvas'));
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(playing){T+=dt/DUR[Math.min(STEP,DUR.length-1)];if(T>=1){T=1;setPlaying(false)}applyState();updateBullets()}
+  else if(STEP===1&&tools.userData.saw&&tools.userData.saw.visible){}
+  if(camAnim){const u=ease(Math.min(1,(now-camAnim.t0)/900));camera.position.copy(camAnim.fromP).lerp(camAnim.to.pos,u);controls.target.copy(camAnim.fromT).lerp(camAnim.to.tgt,u);if(u>=1)camAnim=null}
+  controls.update();renderer.render(scene,camera);
+  if(mv){mv.ct.update();mv.r.render(mv.scene,mv.cam)}
+  requestAnimationFrame(loop)}
+
+initMV();readTheme();syncInputs();
+MD=compute();buildEnv(MD);buildWork(MD);renderStepsUI();drawPlans();computeItems();renderMaterialList();warnings();
+resize();T=0;applyState();updateBullets();frame(true);setPlaying(!reduceMotion);if(reduceMotion){T=1;applyState();updateBullets()}
+(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>{makeThumbs();showItem()});
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

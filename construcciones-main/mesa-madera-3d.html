@@ -1,0 +1,1186 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mesa de tablas con patas en cruz · modelo 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF0EB; --panel:#FFFFFF; --ink:#1E2A2F; --muted:#5E6A6E; --line:#CDD3CC;
+  --tape:#F2B705; --tape-deep:#B98B00; --mark:#C8412A; --part:#EADFC8; --scene:#E3E6DF; --soft:#F5F6F2;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#13181A; --panel:#1B2225; --ink:#E4E9E4; --muted:#98A4A5; --line:#2F3A3D;
+    --tape:#F2B705; --tape-deep:#B98B00; --mark:#E8694E; --part:#3B3428; --scene:#192023; --soft:#20282B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#13181A; --panel:#1B2225; --ink:#E4E9E4; --muted:#98A4A5; --line:#2F3A3D;
+  --tape:#F2B705; --tape-deep:#B98B00; --mark:#E8694E; --part:#3B3428; --scene:#192023; --soft:#20282B;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tape);outline-offset:2px}
+.app{max-width:1640px;margin:0 auto;padding:18px clamp(12px,2vw,28px) 40px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;gap:14px 36px;align-items:flex-end;justify-content:space-between;padding-bottom:16px}
+h1{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:clamp(2rem,3.6vw,3rem);line-height:.95;margin:0 0 8px;letter-spacing:.002em}
+.lede{margin:0;color:var(--muted);max-width:62ch}
+.lede a{color:inherit}
+.summary{display:flex;gap:28px;flex-wrap:wrap}
+.stat b{display:block;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:1.75rem;font-weight:600;line-height:1}
+.stat span{font-size:.85rem;color:var(--muted)}
+
+/* controls */
+.controls{display:grid;grid-template-columns:repeat(3,minmax(170px,1fr)) minmax(150px,.8fr) minmax(150px,.8fr) minmax(120px,.6fr);gap:14px 22px;align-items:end;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tape{display:flex;flex-direction:column;gap:6px;min-width:0}
+.tape-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tape-head label{font-weight:600}
+.tape-num{display:flex;align-items:baseline;gap:4px;font-family:"Barlow Condensed","Arial Narrow",sans-serif;color:var(--muted)}
+.tape-num input{width:4.3em;font-size:1.25rem;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--soft);color:var(--ink);padding:1px 6px;text-align:right}
+input[type=range].tape-range{-webkit-appearance:none;appearance:none;width:100%;height:32px;margin:0;border-radius:4px;cursor:pointer;
+  border:1px solid var(--tape-deep);
+  background:
+    repeating-linear-gradient(90deg,#1E2A2F 0 1.5px,transparent 1.5px var(--major,20px)) 2px 100%/calc(100% - 4px) 15px no-repeat,
+    repeating-linear-gradient(90deg,#1E2A2F 0 1px,transparent 1px var(--minor,10px)) 2px 100%/calc(100% - 4px) 8px no-repeat,
+    var(--tape);}
+input[type=range].tape-range::-webkit-slider-thumb{-webkit-appearance:none;width:5px;height:36px;border-radius:2px;background:var(--mark);box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+input[type=range].tape-range::-moz-range-thumb{width:5px;height:36px;border:0;border-radius:2px;background:var(--mark);box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+input[type=range].tape-range::-moz-range-track{background:transparent}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:600}
+select{appearance:none;-webkit-appearance:none;background:var(--soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235E6A6E' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid var(--line);border-radius:6px;padding:7px 30px 7px 10px;width:100%}
+.switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;padding:6px 0}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .knob{width:44px;height:24px;border-radius:12px;background:var(--line);position:relative;flex:none;transition:background .15s}
+.switch .knob::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--panel);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.switch input:checked + .knob{background:var(--tape)}
+.switch input:checked + .knob::after{transform:translateX(20px)}
+.switch input:focus-visible + .knob{outline:3px solid var(--tape);outline-offset:2px}
+.switch span:last-child{font-weight:600}
+
+/* stage */
+.modebar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin:16px 0 10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:transparent;padding:8px 16px;font-weight:600;cursor:pointer;color:var(--muted)}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.hint{color:var(--muted);font-size:.9rem}
+.stage{display:grid;grid-template-columns:minmax(230px,290px) minmax(0,1fr) minmax(230px,290px);gap:14px}
+.stage.no-ref{grid-template-columns:minmax(0,1fr)}
+.stage.no-ref .ref{display:none}
+.viewport{position:relative;height:clamp(420px,64vh,760px);border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--scene);touch-action:none}
+.viewport canvas{display:block;width:100%;height:100%}
+.vp-caption{position:absolute;left:12px;top:12px;max-width:min(78%,460px);background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--tape);border-radius:6px;padding:8px 12px;pointer-events:none}
+.vp-caption small{display:block;color:var(--muted);font-size:.8rem}
+.vp-caption strong{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:1.25rem;font-weight:600;line-height:1.1}
+.vp-prog{position:absolute;left:0;bottom:0;height:4px;background:var(--tape);width:0}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.plabel{position:absolute;left:0;top:0;background:var(--panel);border:1px solid var(--line);padding:3px 8px;border-radius:5px;font-size:.8rem;white-space:nowrap;line-height:1.25;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.plabel b{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:.95rem}
+.plabel.hl{border-color:var(--tape);box-shadow:0 0 0 2px var(--tape)}
+.ref{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 14px 4px;overflow:auto;height:clamp(420px,64vh,760px)}
+.ref h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:1.3rem;margin:0 0 2px}
+.ref .sub{color:var(--muted);font-size:.85rem;margin:0 0 12px}
+.ref h3{font-size:.95rem;font-weight:600;margin:0 0 4px}
+.ref figure{margin:0 0 16px}
+.ref figcaption{font-size:.82rem;color:var(--muted);margin-top:2px}
+.ref svg{display:block;height:auto;max-width:100%}
+.sv-part{fill:var(--part);stroke:var(--ink);stroke-width:1}
+.sv-line{stroke:var(--ink);stroke-width:.7;fill:none}
+.sv-hidden{stroke:var(--muted);stroke-width:.9;stroke-dasharray:3 2;fill:none}
+.sv-floor{stroke:var(--muted);stroke-width:1.2}
+.sv-hole{fill:var(--ink)}
+.sv-rod{stroke:var(--muted);stroke-width:2.2}
+.sv-cut{stroke:var(--mark);stroke-width:1.2;fill:none}
+.sv-dim line{stroke:var(--muted);stroke-width:.8}
+.sv-dim .tk{stroke:var(--ink);stroke-width:1.2}
+.sv-dim text,.sv-t{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:11px;fill:var(--ink);font-weight:500}
+.sv-t.m{fill:var(--muted)}
+
+/* lower */
+.lower{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;margin-top:14px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.card > h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:1.55rem;margin:0 0 4px}
+.card > p.sub{margin:0 0 14px;color:var(--muted)}
+.player{border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--soft)}
+.player .ph{color:var(--muted);font-size:.9rem}
+.player h3{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:1.6rem;line-height:1.05;margin:2px 0 6px}
+.player p{margin:0 0 12px;max-width:68ch}
+.pctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:7px 12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--tape);border-color:var(--tape-deep);color:#1E2A2F;min-width:110px;justify-content:center}
+.btn svg{width:16px;height:16px}
+.scrub{flex:1 1 160px;accent-color:var(--tape)}
+.chain{display:flex;align-items:center;gap:6px;font-size:.9rem;color:var(--muted)}
+.phases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.phases h4{margin:0 0 6px;font-size:.95rem}
+.phases ol{margin:0;padding:0;list-style:none;counter-reset:none}
+.phases li button{display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;border:0;background:transparent;padding:5px 6px;border-radius:6px;cursor:pointer;border-left:4px solid transparent}
+.phases li button:hover{background:var(--soft)}
+.phases li button .n{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;color:var(--muted);min-width:1.4em}
+.phases li button.done{color:var(--muted)}
+.phases li button.active{border-left-color:var(--tape);background:var(--soft);font-weight:600}
+.phases li button.active .n{color:var(--ink)}
+table.mat{width:100%;border-collapse:collapse;font-size:.95rem}
+table.mat th{text-align:left;font-weight:600;color:var(--muted);font-size:.85rem;border-bottom:1px solid var(--line);padding:6px 8px}
+table.mat td{border-bottom:1px solid var(--line);padding:9px 8px;vertical-align:top}
+table.mat td.q{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:600;font-size:1.15rem;white-space:nowrap}
+table.mat td small{display:block;color:var(--muted);font-size:.84rem;margin-top:2px}
+table.mat tr.pick{cursor:pointer}
+table.mat tr.pick:hover td{background:var(--soft)}
+table.mat tr.pick td:first-child::after{content:" (ver en 3D)";color:var(--muted);font-size:.8rem;font-weight:400}
+table.mat tr.hl td{background:color-mix(in srgb,var(--tape) 22%,transparent)}
+.tablewrap{overflow-x:auto}
+.note{font-size:.88rem;color:var(--muted);margin:12px 0 0}
+footer{margin-top:22px;color:var(--muted);font-size:.88rem}
+footer a{color:inherit}
+
+@media (max-width:1180px){
+  .controls{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stage{grid-template-columns:1fr 1fr}
+  .viewport{grid-column:1/-1;order:-1}
+  .ref{height:auto;max-height:none}
+  .lower{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  .controls{grid-template-columns:1fr 1fr}
+  .controls .tape{grid-column:1/-1}
+  .stage{grid-template-columns:1fr}
+  .phases{grid-template-columns:1fr}
+  .viewport{height:58vh;min-height:340px}
+  .vp-caption{max-width:calc(100% - 24px)}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>Mesa de tablas con patas en cruz</h1>
+      <p class="lede">Modelo 3D de la mesa de la guía <a href="https://www.hagaloustedmismo.cl/proyectos/como-hacer-una-mesa-de-madera.html" target="_blank" rel="noopener">¿Cómo hacer una mesa de madera?</a> de Hágalo Usted Mismo. Cambia las medidas o la madera y se recalculan las piezas, los cortes y los materiales.</p>
+    </div>
+    <div class="summary" id="summary"></div>
+  </header>
+
+  <section class="controls" aria-label="Medidas y materiales">
+    <div class="tape">
+      <div class="tape-head"><label for="rL">Largo</label><span class="tape-num"><input id="nL" type="number" min="90" max="240" step="1" aria-label="Largo en cm"> cm</span></div>
+      <input id="rL" class="tape-range" type="range" min="90" max="240" step="1">
+    </div>
+    <div class="tape">
+      <div class="tape-head"><label for="rW">Ancho</label><span class="tape-num"><input id="nW" type="number" min="50" max="120" step="1" aria-label="Ancho en cm"> cm</span></div>
+      <input id="rW" class="tape-range" type="range" min="50" max="120" step="1">
+    </div>
+    <div class="tape">
+      <div class="tape-head"><label for="rH">Alto</label><span class="tape-num"><input id="nH" type="number" min="60" max="110" step="1" aria-label="Alto en cm"> cm</span></div>
+      <input id="rH" class="tape-range" type="range" min="60" max="110" step="1">
+    </div>
+    <div class="field">
+      <label for="wood">Madera</label>
+      <select id="wood"></select>
+    </div>
+    <div class="field">
+      <label for="finish">Terminación</label>
+      <select id="finish">
+        <option value="decapado">Decapado (como la guía)</option>
+        <option value="natural">Natural, solo barniz</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="use">Uso</label>
+      <select id="use">
+        <option value="interior">Interior</option>
+        <option value="exterior">Exterior</option>
+      </select>
+    </div>
+  </section>
+
+  <div class="modebar">
+    <div class="seg" role="group" aria-label="Vista">
+      <button type="button" data-mode="mesa" aria-pressed="true">Mesa terminada</button>
+      <button type="button" data-mode="armado" aria-pressed="false">Paso a paso</button>
+      <button type="button" data-mode="piezas" aria-pressed="false">Piezas</button>
+    </div>
+    <label class="switch"><input type="checkbox" id="t2d" checked><span class="knob" aria-hidden="true"></span><span>Planos 2D a los lados</span></label>
+    <span class="hint">Arrastra para girar, rueda o pellizco para acercar.</span>
+  </div>
+
+  <main class="stage" id="stage">
+    <aside class="ref" id="refLeft" aria-label="Planos de la mesa"></aside>
+    <div class="viewport" id="viewport">
+      <div id="labels"></div>
+      <div class="vp-caption" id="vpCaption" hidden><small id="vpPhase"></small><strong id="vpTitle"></strong></div>
+      <div class="vp-prog" id="vpProg"></div>
+    </div>
+    <aside class="ref" id="refRight" aria-label="Medidas de cada pieza"></aside>
+  </main>
+
+  <section class="lower">
+    <div class="card">
+      <h2>Paso a paso</h2>
+      <p class="sub">Cada paso se anima en el modelo. Puedes pausarlo, adelantarlo con la barra o saltar a cualquier paso.</p>
+      <div class="player">
+        <div class="ph" id="plPhase"></div>
+        <h3 id="plTitle"></h3>
+        <p id="plText"></p>
+        <div class="pctrl">
+          <button class="btn" id="bPrev" type="button" aria-label="Paso anterior"><svg viewBox="0 0 16 16"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg>Anterior</button>
+          <button class="btn primary" id="bPlay" type="button">Reproducir</button>
+          <button class="btn" id="bNext" type="button" aria-label="Paso siguiente">Siguiente<svg viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+          <input class="scrub" id="scrub" type="range" min="0" max="1000" value="0" aria-label="Avance del paso">
+          <label class="chain"><input type="checkbox" id="chain" checked> Seguir con el siguiente paso</label>
+        </div>
+      </div>
+      <div class="phases" id="phases"></div>
+    </div>
+
+    <div class="card">
+      <h2>Materiales para tu mesa</h2>
+      <p class="sub" id="matSub"></p>
+      <div class="tablewrap">
+        <table class="mat">
+          <thead><tr><th>Material</th><th>Cantidad</th><th>Cortes y medidas</th></tr></thead>
+          <tbody id="matBody"></tbody>
+        </table>
+      </div>
+      <p class="note" id="matNote"></p>
+      <p class="note"><b>Herramientas de la guía:</b> taladro con broca de madera de 13 mm y broca para bisagra, sierra circular, esmeril angular con disco de corte para metal, formón, serrucho, prensas sargento, combo, llave chicharra con dado, cepillo eléctrico, lijadora orbital, espátula, raspador, brocha y bandeja.</p>
+    </div>
+  </section>
+
+  <footer>Proceso y medidas base: Hágalo Usted Mismo (Sodimac), “¿Cómo hacer una mesa de madera?”. Las secciones de madera cepillada, los rendimientos de pintura y el peso son aproximados; confirma en tienda antes de comprar.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a, v));
+const ease = t => t*t*(3-2*t);
+const lerp = (a,b,t) => a + (b-a)*t;
+const fmt = (v,d=1) => (Math.round(v*Math.pow(10,d))/Math.pow(10,d)).toLocaleString('es-CL');
+const ceilTo = (v,step) => Math.ceil(v/step - 1e-9)*step;
+
+/* ---------- Data ---------- */
+const WOODS = {
+  pino:     {name:'Pino radiata cepillado', short:'pino',      color:'#E4C590', grain:'#C29A62', density:450},
+  lenga:    {name:'Lenga',                  short:'lenga',     color:'#CE9470', grain:'#A36A4A', density:560},
+  rauli:    {name:'Raulí',                  short:'raulí',     color:'#AA6A4C', grain:'#7E452D', density:540},
+  coigue:   {name:'Coigüe',                 short:'coigüe',    color:'#BA805C', grain:'#8C573A', density:650},
+  roble:    {name:'Roble pellín',           short:'roble',     color:'#8C5C3E', grain:'#5F3A24', density:760},
+  eucalipto:{name:'Eucalipto',              short:'eucalipto', color:'#C99C76', grain:'#9C6E4C', density:700}
+};
+// Secciones reales aprox. de madera cepillada (cm)
+const SEC = {boardW:11.5, boardT:4.1, legW:9.0, legT:4.1, listT:2.0, listW:6.5, crossW:4.0, crossH:7.0};
+const STOCK = 320; // largo comercial de tablas (cm)
+
+const state = {L:155, W:80, H:78, wood:'pino', finish:'decapado', use:'interior', show2D:true,
+  mode:'mesa', step:0, t:0, playing:false, chain:true, highlight:null};
+
+let D = null;
+function derive(){
+  const {L,W,H} = state;
+  const n = Math.max(3, Math.round(W / SEC.boardW));
+  const Wt = n * SEC.boardW;
+  const topT = SEC.boardT;
+  const hx = H - topT - SEC.listT;
+  const wx = Math.max(30, Wt - 15);
+  let c = SEC.legW * Math.hypot(wx, hx) / hx;
+  for (let i=0;i<10;i++) c = SEC.legW * Math.hypot(wx - c, hx) / hx;
+  const e = Math.hypot(wx - c, hx);
+  const alpha = Math.atan2(hx, wx - c);
+  const kShift = SEC.legW / Math.tan(alpha);
+  const legCut = Math.ceil(e + kShift + 1);
+  const inset = Math.max(15, Math.round(L * 0.14));
+  const xFrame = L/2 - inset;
+  const nRods = Math.max(3, 1 + Math.ceil((L - 30) / 65));
+  const rodX = Array.from({length:nRods}, (_,i) => -L/2 + 15 + (L-30)*i/(nRods-1));
+  const rodFinal = Wt + 2.2;
+  const rodBuy = (Wt + 6 <= 100) ? 100 : 200;
+  const rv = (c/2) * hx / (wx - c);
+  const wedgeX = xFrame + SEC.legT/2 + 3;
+  // area & volume
+  const areaTop = 2*L*Wt + 2*(L+Wt)*topT;
+  const areaLegs = 4*(2*c*hx + 2*(c+e)*SEC.legT);
+  const areaList = 2*(2*wx*SEC.listW + 2*(wx+SEC.listW)*SEC.listT);
+  const areaCross = 2*L*(SEC.crossH+SEC.crossW) + 2*SEC.crossH*SEC.crossW;
+  const area = (areaTop + areaLegs + areaList + areaCross)/1e4; // m2
+  const vol = n*L*SEC.boardW*topT + 4*c*hx*SEC.legT + 2*wx*SEC.listW*SEC.listT + L*SEC.crossH*SEC.crossW;
+  const kg = vol/1e6 * WOODS[state.wood].density;
+  const screws = 8 + 2*n;
+  return {L,W,H,n,Wt,topT,hx,wx,c,e,alpha,angle:alpha*180/Math.PI,kShift,legCut,inset,xFrame,nRods,rodX,rodFinal,rodBuy,rv,wedgeX,area,kg,screws};
+}
+
+function pack(pieces, stock=STOCK, kerf=0.4){
+  const bins = [];
+  [...pieces].sort((a,b)=>b-a).forEach(p=>{
+    const b = bins.find(b => b.used + kerf + p <= stock);
+    if (b){ b.used += kerf + p; b.items.push(p); } else bins.push({used:p, items:[p]});
+  });
+  return bins;
+}
+
+/* ---------- Steps ---------- */
+const PHASES = ['Hacer la cubierta','Construir las patas','Terminación'];
+const STEPS = [
+  {ph:0, title:'Marcar las tablas', dur:5, text:d=>`Marca el eje en ambos cantos de las ${d.n} tablas de 2×5" y la posición de los ${d.nRods} agujeros: a 15 cm de cada extremo${d.nRods===3?` y uno al centro, a ${fmt(d.L/2)} cm del borde`:`, repartidos cada ${fmt((d.L-30)/(d.nRods-1))} cm`}.`},
+  {ph:0, title:'Hacer los agujeros', dur:6, text:d=>`Prensa cada tabla al mesón y perfora con broca para madera de 13 mm. La broca no alcanza a atravesar los ${fmt(SEC.boardW)} cm de ancho, así que termina el agujero desde el otro canto.`},
+  {ph:0, title:'Tablas de los extremos', dur:4.5, text:d=>`En las 2 tablas que van en los bordes agranda el agujero, solo por el canto exterior, con broca para bisagra. Ahí quedarán embutidas la golilla y la tuerca.`},
+  {ph:0, title:'Formar la cubierta', dur:7, text:d=>`Pasa el hilo estriado de 12 mm por la primera tabla. Pon cola fría en el canto y embute la siguiente ayudándote con un combo, hasta completar las ${d.n}. Termina con golilla y tuerca en cada hilo y aprieta con la llave chicharra.`},
+  {ph:0, title:'Cortar los fierros', dur:4.5, text:d=>`Con la cubierta firme, corta el hilo que sobra con el esmeril angular y un disco de corte para metal.`},
+  {ph:0, title:'Cepillar y lijar', dur:5, text:d=>`Pasa el cepillo para eliminar los desniveles entre tablas y pule la cubierta con la lijadora orbital. Redondea las aristas para que no molesten los brazos.`},
+  {ph:1, title:'Cortar las patas en diagonal', dur:6, text:d=>`Haz una plantilla de cartón de ${fmt(d.hx)} × ${fmt(d.wx)} cm (alto × ancho de la cruz). Presenta encima las patas de ${d.legCut} cm formando la X, marca los extremos y córtalos con sierra circular para que apoyen planos en el piso y bajo el listón (corte a ≈${Math.round(d.angle)}° respecto del canto).`},
+  {ph:1, title:'Marcar el encuentro', dur:4.5, text:d=>`Vuelve a presentar las patas ya cortadas sobre la plantilla, dibújalas y marca por todos los cantos la zona donde se cruzan.`},
+  {ph:1, title:'Hacer los calados', dur:5, text:d=>`Marca con serrucho solo hasta la mitad del grosor y retira la madera con formón. Es un calado a media madera en cada pata.`},
+  {ph:1, title:'Pegar las patas', dur:4.5, text:d=>`Pon cola fría y une cada par de patas en cruz. Déjalas prensadas hasta que la cola seque.`},
+  {ph:1, title:'Fijar los listones', dur:4.5, text:d=>`Sobre cada cruz fija un listón de ${fmt(d.wx)} cm con cola fría y tornillos. Este listón es la base donde se apoya y atornilla la cubierta.`},
+  {ph:1, title:'Calar para el travesaño', dur:5, text:d=>`Al centro de cada X marca un rectángulo de ${SEC.crossW} cm de ancho por ${SEC.crossH} cm de alto. Haz varias perforaciones con broca para madera y termina el calado con formón.`},
+  {ph:2, title:'Unir y fijar la cubierta', dur:6, text:d=>`Pasa el travesaño de ${fmt(d.L)} cm por las dos cruces, presenta la cubierta encima y atorníllala por debajo a los listones.`},
+  {ph:2, title:'Ajustar el travesaño', dur:4, text:d=>`Haz un pequeño calado en cada extremo del travesaño y pasa una estaca de madera para que no se desplace.`},
+  {ph:2, title:'Decapado', dur:6, text:d=> state.finish==='decapado'
+      ? `Mezcla pasta muro con pintura y repártela dispareja con espátula; luego agrega manchones solo de pintura. Cuando seque, raspa y lija a mano para que vuelva a asomar la madera.`
+      : `Elegiste terminación natural, así que este paso se omite y la madera queda a la vista.`},
+  {ph:2, title:'Proteger', dur:5, text:d=>`Aplica sellador para madera en toda la mesa. Una vez seco, termina con ${state.use==='interior'?'vitrificante, porque la mesa estará dentro de la casa':'barniz, porque la mesa estará al exterior'}.`}
+];
+
+/* ---------- Three setup ---------- */
+const vp = $('#viewport');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+vp.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 1, 8000);
+camera.position.set(230, 170, 250);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.09;
+controls.maxPolarAngle = Math.PI*0.495; controls.minDistance = 30; controls.maxDistance = 1600;
+controls.target.set(0, 40, 0);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x9a9080, 0.72));
+const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+sun.position.set(170, 330, 210); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, {left:-320,right:320,top:320,bottom:-320,near:10,far:1200});
+sun.shadow.bias = -0.0006;
+scene.add(sun);
+const fillL = new THREE.DirectionalLight(0xffffff, 0.28); fillL.position.set(-220, 120, -160); scene.add(fillL);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(4000,4000), new THREE.ShadowMaterial({opacity:0.17}));
+floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+let grid = null;
+
+function isDark(){
+  const t = document.documentElement.dataset.theme;
+  if (t === 'dark') return true; if (t === 'light') return false;
+  return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function applyTheme(){
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--scene').trim() || '#E3E6DF';
+  const col = new THREE.Color(bg); col.convertSRGBToLinear();
+  renderer.setClearColor(col);
+  if (grid){ scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
+  const dk = isDark();
+  grid = new THREE.GridHelper(800, 40, dk?0x3b474b:0xaeb6ab, dk?0x283236:0xcdd3ca); // celdas de 20 cm
+  grid.position.y = 0.03; scene.add(grid);
+}
+if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+/* ---------- Textures & materials ---------- */
+function rng(seed){ let r = seed; return () => (r = (r*16807) % 2147483647) / 2147483647; }
+function woodCanvas(base, grain, seed){
+  const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 256;
+  const g = cv.getContext('2d'); const rnd = rng(seed);
+  g.fillStyle = base; g.fillRect(0,0,cv.width,cv.height);
+  for (let i=0;i<80;i++){
+    const y0 = rnd()*cv.height, amp = 2+rnd()*7, fq = 0.002+rnd()*0.006, ph = rnd()*6.28;
+    g.strokeStyle = grain; g.globalAlpha = 0.1 + rnd()*0.28; g.lineWidth = 0.6 + rnd()*2.4;
+    g.beginPath();
+    for (let x=0;x<=cv.width;x+=8){ const y = y0 + Math.sin(x*fq+ph)*amp + Math.sin(x*fq*3.1+ph*2)*amp*0.3; if (x===0) g.moveTo(x,y); else g.lineTo(x,y); }
+    g.stroke();
+  }
+  for (let i=0;i<3;i++){ const x=rnd()*cv.width, y=rnd()*cv.height, r=4+rnd()*7; g.globalAlpha=0.4; g.fillStyle=grain; g.beginPath(); g.ellipse(x,y,r*2.4,r,0,0,6.283); g.fill(); }
+  g.globalAlpha = 1; return cv;
+}
+function paintCanvas(src, kind){
+  const cv = document.createElement('canvas'); cv.width = src.width; cv.height = src.height;
+  const g = cv.getContext('2d'); g.drawImage(src,0,0);
+  const heavy = kind === 'paint'; const rnd = rng(heavy ? 11 : 29);
+  const N = heavy ? 460 : 180;
+  for (let i=0;i<N;i++){
+    g.globalAlpha = heavy ? 0.78 + rnd()*0.22 : 0.5 + rnd()*0.42;
+    g.fillStyle = rnd() < 0.78 ? '#EFEDE5' : '#D9D4C8';
+    const x = rnd()*cv.width, y = rnd()*cv.height;
+    const rx = (heavy?34:14) + rnd()*(heavy?64:34), ry = rx*(0.22+rnd()*0.35);
+    g.beginPath(); g.ellipse(x,y,rx,ry,(rnd()-0.5)*0.35,0,6.283); g.fill();
+  }
+  if (!heavy){
+    g.globalAlpha = 0.95;
+    for (let i=0;i<70;i++){ const x=rnd()*cv.width, y=rnd()*cv.height, len=40+rnd()*170, h=3+rnd()*6; g.drawImage(src, x, y, len, h, x, y, len, h); }
+  }
+  g.globalAlpha = 1; return cv;
+}
+function toTex(cv){
+  const t = new THREE.CanvasTexture(cv);
+  t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+let tex = {};
+function makeTextures(){
+  Object.values(tex).forEach(t => t.dispose());
+  const w = WOODS[state.wood];
+  const cv = woodCanvas(w.color, w.grain, 7);
+  tex = {wood: toTex(cv), paint: toTex(paintCanvas(cv,'paint')), decape: toTex(paintCanvas(cv,'decape'))};
+}
+const mats = {
+  wood: new THREE.MeshStandardMaterial({roughness:0.8, metalness:0}),
+  metal: new THREE.MeshStandardMaterial({color:0x8d969a, metalness:0.85, roughness:0.35}),
+  mark: new THREE.MeshBasicMaterial({color:0xC8412A}),
+  hole: new THREE.MeshBasicMaterial({color:0x1b130d}),
+  tool: new THREE.MeshStandardMaterial({color:0xF2B705, roughness:0.5}),
+  toolDark: new THREE.MeshStandardMaterial({color:0x2b3236, roughness:0.6, metalness:0.25}),
+  blade: new THREE.MeshStandardMaterial({color:0xbfc6ca, metalness:0.9, roughness:0.25, side:THREE.DoubleSide}),
+  card: new THREE.MeshStandardMaterial({color:0xB38C57, roughness:0.95, transparent:true, opacity:0.8, side:THREE.DoubleSide}),
+  notch: new THREE.MeshBasicMaterial({color:0x2a1a10, transparent:true, opacity:0.7, side:THREE.DoubleSide, depthWrite:false}),
+  outline: new THREE.LineBasicMaterial({color:0xC8412A}),
+  paintTool: new THREE.MeshStandardMaterial({color:0xEFEDE5, roughness:0.9})
+};
+function mesh(geo, mat, shadow=true){ const m = new THREE.Mesh(geo, mat); if (shadow){ m.castShadow = true; m.receiveShadow = true; } return m; }
+function faceDecal(geo, mat){ return new THREE.Mesh(geo, mat); }
+
+/* leg geometry: parallelogram in (z,y) plane, thickness along x */
+function legGeometry(mirror){
+  const {wx,hx,c} = D;
+  let pts = [[-wx/2,0],[-wx/2+c,0],[wx/2,hx],[wx/2-c,hx]];
+  if (mirror){ pts = pts.map(([z,y])=>[-z,y]).reverse(); }
+  const s = new THREE.Shape(); s.moveTo(pts[0][0],pts[0][1]); for (let i=1;i<pts.length;i++) s.lineTo(pts[i][0],pts[i][1]); s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, {depth:SEC.legT, bevelEnabled:false});
+  g.rotateY(-Math.PI/2); g.translate(SEC.legT/2, 0, 0);
+  // uv following the leg direction
+  const dz = (mirror?-1:1)*(wx-c)/D.e, dy = hx/D.e;
+  const pos = g.attributes.position, uv = g.attributes.uv;
+  for (let i=0;i<pos.count;i++){
+    const x=pos.getX(i), y=pos.getY(i), z=pos.getZ(i);
+    uv.setXY(i, (z*dz + y*dy)/110 + 0.5, (-z*dy + y*dz + x)/28 + 0.5);
+  }
+  uv.needsUpdate = true;
+  return g;
+}
+function rectLegGeometry(){ const g = new THREE.BoxGeometry(D.legCut, SEC.legW, SEC.legT); g.rotateY(Math.PI/2); return g; }
+
+/* ---------- Tools (persistent) ---------- */
+const T = {};
+(function makeTools(){
+  const add = (g) => { g.traverse(o=>{ if (o.isMesh){ o.castShadow = true; } }); g.visible = false; scene.add(g); return g; };
+  // pencil: tip at origin, body toward +z
+  T.pencil = new THREE.Group();
+  { const body = mesh(new THREE.CylinderGeometry(0.55,0.55,14,6), mats.tool); body.rotation.x = Math.PI/2; body.position.z = 8.5;
+    const tip = mesh(new THREE.ConeGeometry(0.55,1.6,6), mats.toolDark); tip.rotation.x = -Math.PI/2; tip.position.z = 0.8;
+    T.pencil.add(body, tip); }
+  add(T.pencil);
+  // drill: bit tip at origin, bit/body toward +z
+  T.drill = new THREE.Group();
+  { const bitS = mesh(new THREE.CylinderGeometry(0.65,0.65,14,12), mats.blade); bitS.rotation.x = Math.PI/2; bitS.position.z = 7;
+    const bitB = mesh(new THREE.CylinderGeometry(1.7,1.7,1.2,20), mats.blade); bitB.rotation.x = Math.PI/2; bitB.position.z = 0.6;
+    const shaft = mesh(new THREE.CylinderGeometry(0.4,0.4,13,8), mats.blade); shaft.rotation.x = Math.PI/2; shaft.position.z = 7.5;
+    const chuck = mesh(new THREE.CylinderGeometry(1.8,1.4,4,16), mats.toolDark); chuck.rotation.x = Math.PI/2; chuck.position.z = 16;
+    const body = mesh(new THREE.BoxGeometry(6,8,15), mats.tool); body.position.z = 25;
+    const handle = mesh(new THREE.BoxGeometry(4.2,12,4.6), mats.toolDark); handle.position.set(0,-9,28);
+    T.drill.add(bitS, bitB, shaft, chuck, body, handle);
+    T.drill.userData = {bitS, bitB, shaft}; }
+  add(T.drill);
+  // grinder: disc axis along z, body up
+  T.grinder = new THREE.Group();
+  { const disc = mesh(new THREE.CylinderGeometry(6,6,0.35,32), mats.blade); disc.rotation.x = Math.PI/2;
+    const guard = mesh(new THREE.CylinderGeometry(6.6,6.6,1.6,32,1,true,0,Math.PI), mats.toolDark); guard.rotation.x = Math.PI/2; guard.rotation.y = Math.PI; guard.position.z = 0.9;
+    const body = mesh(new THREE.CylinderGeometry(2.8,2.6,22,16), mats.tool); body.position.set(0,12,2.5);
+    const head = mesh(new THREE.BoxGeometry(5.5,5,6), mats.toolDark); head.position.set(0,1.5,3);
+    T.grinder.add(disc, guard, body, head); }
+  add(T.grinder);
+  // sparks
+  { const N = 50, geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N*3),3));
+    T.sparks = new THREE.Points(geo, new THREE.PointsMaterial({color:0xffa531, size:0.9})); T.sparks.userData.seeds = Array.from({length:N}, ()=>[Math.random(), Math.random()*2-1, Math.random()*2-1, Math.random()]);
+    T.sparks.visible = false; scene.add(T.sparks); }
+  // sander
+  T.sander = new THREE.Group();
+  { const pad = mesh(new THREE.CylinderGeometry(6.2,6.2,1.6,28), mats.toolDark); pad.position.y = 0.8;
+    const body = mesh(new THREE.CylinderGeometry(5,6,7,24), mats.tool); body.position.y = 5;
+    const knob = mesh(new THREE.SphereGeometry(3.4,16,12), mats.toolDark); knob.position.y = 9.5;
+    T.sander.add(pad, body, knob); }
+  add(T.sander);
+  // circular saw: blade horizontal
+  T.saw = new THREE.Group();
+  { const blade = mesh(new THREE.CylinderGeometry(9,9,0.3,40), mats.blade);
+    const base = mesh(new THREE.BoxGeometry(22,0.6,16), mats.toolDark); base.position.set(0,0.5,-6);
+    const body = mesh(new THREE.BoxGeometry(12,7,10), mats.tool); body.position.set(0,4.5,-8);
+    T.saw.add(blade, base, body); }
+  add(T.saw);
+  // chisel: pointing -x from origin
+  T.chisel = new THREE.Group();
+  { const blade = mesh(new THREE.BoxGeometry(9,0.4,2.4), mats.blade); blade.position.x = 4.5;
+    const handle = mesh(new THREE.CylinderGeometry(1.3,1.1,10,12), mats.tool); handle.rotation.z = Math.PI/2; handle.position.x = 14;
+    T.chisel.add(blade, handle); }
+  add(T.chisel);
+  // spatula
+  T.spatula = new THREE.Group();
+  { const blade = mesh(new THREE.BoxGeometry(10,0.25,8), mats.blade); blade.position.y = 0.2;
+    const handle = mesh(new THREE.CylinderGeometry(1,1,11,10), mats.tool); handle.rotation.z = 1.1; handle.position.set(8,4,0);
+    const paint = mesh(new THREE.BoxGeometry(6,0.5,5), mats.paintTool); paint.position.y = 0.6;
+    T.spatula.add(blade, handle, paint); }
+  add(T.spatula);
+  // brush
+  T.brush = new THREE.Group();
+  { const bristle = mesh(new THREE.BoxGeometry(2,4,9), mats.toolDark); bristle.position.y = 2;
+    const ferrule = mesh(new THREE.BoxGeometry(2.4,2.5,9.4), mats.blade); ferrule.position.y = 5;
+    const handle = mesh(new THREE.BoxGeometry(1.8,11,5), mats.tool); handle.position.y = 11.5;
+    T.brush.add(bristle, ferrule, handle); T.brush.rotation.z = 0.35; }
+  add(T.brush);
+})();
+function hideTools(){ Object.values(T).forEach(o => o.visible = false); }
+
+/* ---------- Build assembly ---------- */
+let assembly = null, topGroup = null, parts = null, piecesGroup = null, pieceRows = [], pieceMats = {};
+function disposeGroup(g){ if (!g) return; g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); scene.remove(g); }
+
+function build(){
+  D = derive();
+  disposeGroup(assembly);
+  assembly = new THREE.Group(); scene.add(assembly);
+  parts = {boards:[], rods:[], nuts:[], marks:[], axes:[], holes:[], cbores:[], frames:[], wedges:[], cross:null};
+  topGroup = new THREE.Group(); assembly.add(topGroup);
+  const {L,Wt,n,topT,nRods,rodX,hx,wx,c,rv,xFrame} = D, bw = SEC.boardW, lt = SEC.legT;
+
+  for (let i=0;i<n;i++){
+    const b = mesh(new THREE.BoxGeometry(L, topT, bw), mats.wood);
+    b.userData.zFinal = -Wt/2 + bw*(i+0.5);
+    b.userData.jit = 0.18 + ((i*37) % 7)/7 * 0.5;
+    topGroup.add(b); parts.boards.push(b);
+    [-1,1].forEach(side => {
+      const ax = faceDecal(new THREE.BoxGeometry(L, 0.18, 0.04), mats.mark); ax.position.set(0,0,side*(bw/2+0.03)); b.add(ax); parts.axes.push({m:ax, i});
+      rodX.forEach((x,k) => {
+        const g = new THREE.Group(); g.position.set(x,0,side*(bw/2+0.05));
+        g.add(faceDecal(new THREE.BoxGeometry(0.25,2.4,0.05), mats.mark), faceDecal(new THREE.BoxGeometry(2.4,0.25,0.05), mats.mark));
+        b.add(g); parts.marks.push({m:g, idx:i*nRods+k});
+        const h = faceDecal(new THREE.CircleGeometry(0.68,20), mats.hole); h.position.set(x,0,side*(bw/2+0.08)); if (side<0) h.rotation.y = Math.PI;
+        b.add(h); parts.holes.push({m:h, idx:i*nRods+k});
+      });
+    });
+  }
+  rodX.forEach((x,k) => {
+    const c1 = faceDecal(new THREE.CircleGeometry(1.75,24), mats.hole); c1.position.set(x,0,-(bw/2+0.1)); c1.rotation.y = Math.PI; parts.boards[0].add(c1); parts.cbores.push({m:c1, idx:k});
+    const c2 = faceDecal(new THREE.CircleGeometry(1.75,24), mats.hole); c2.position.set(x,0,(bw/2+0.1)); parts.boards[n-1].add(c2); parts.cbores.push({m:c2, idx:nRods+k});
+    const r = mesh(new THREE.CylinderGeometry(0.6,0.6,1,14), mats.metal); r.rotation.x = Math.PI/2; topGroup.add(r); parts.rods.push(r);
+    [-1,1].forEach(side => {
+      const wa = mesh(new THREE.CylinderGeometry(1.45,1.45,0.25,20), mats.metal); wa.rotation.x = Math.PI/2; wa.position.set(x,0,side*(Wt/2+0.13));
+      const nut = mesh(new THREE.CylinderGeometry(1.1,1.1,1,6), mats.metal); nut.rotation.x = Math.PI/2; nut.position.set(x,0,side*(Wt/2+0.75));
+      topGroup.add(wa, nut); parts.nuts.push(wa, nut);
+    });
+  });
+
+  // frames
+  const a = D.alpha;
+  const rhombusPts = [[0,-c/2],[rv,0],[0,c/2],[-rv,0]]; // (dy, z)
+  [-1,1].forEach(sx => {
+    const g = new THREE.Group(); g.position.x = sx*xFrame; assembly.add(g);
+    const fr = {g, sx, legs:[]};
+    [0,1].forEach(j => {
+      const holder = new THREE.Group(); g.add(holder);
+      const para = mesh(legGeometry(j===1), mats.wood);
+      const rect = mesh(rectLegGeometry(), mats.wood);
+      rect.rotation.x = j===0 ? -a : -(Math.PI - a); rect.position.set(0, hx/2, 0);
+      holder.add(para, rect); fr.legs.push({holder, para, rect});
+    });
+    fr.card = mesh(new THREE.PlaneGeometry(wx+8, hx+8), mats.card, false); fr.card.rotation.y = Math.PI/2; fr.card.position.set(-(lt+1.2), hx/2, 0); fr.card.receiveShadow = true; g.add(fr.card);
+    { const pts = rhombusPts.map(([dy,z]) => new THREE.Vector3(0, dy, z));
+      fr.outline = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), mats.outline); fr.outline.position.y = hx/2; g.add(fr.outline);
+      const s = new THREE.Shape(); rhombusPts.forEach(([dy,z],i) => i ? s.lineTo(z,dy) : s.moveTo(z,dy)); s.closePath();
+      const ng = new THREE.ShapeGeometry(s); ng.rotateY(Math.PI/2);
+      fr.notch = new THREE.Mesh(ng, mats.notch); fr.notch.position.y = hx/2; g.add(fr.notch); }
+    fr.mortise = [-1,1].map(side => { const pg = new THREE.PlaneGeometry(SEC.crossW, SEC.crossH); pg.rotateY(Math.PI/2); const m = new THREE.Mesh(pg, mats.hole); m.position.set(side*(lt/2+0.07), hx/2, 0); g.add(m); return m; });
+    fr.liston = mesh(new THREE.BoxGeometry(wx, SEC.listT, SEC.listW), mats.wood); fr.liston.rotation.y = Math.PI/2; g.add(fr.liston);
+    fr.screws = [];
+    [-1,1].forEach(zs => [-1,1].forEach(xs => { const sc = mesh(new THREE.CylinderGeometry(0.45,0.45,0.2,12), mats.metal); sc.position.set(xs*1.5, 0, zs*(wx/2 - c/2)); fr.liston.parent.add(sc); fr.screws.push(sc); }));
+    fr.clamp = new THREE.Group();
+    { const bar = mesh(new THREE.BoxGeometry(lt*2+8, 1.2, 2), mats.toolDark); bar.position.y = rv + 3;
+      const j1 = mesh(new THREE.BoxGeometry(1.4, rv*2+6, 3.2), mats.tool); j1.position.set(-(lt+1.8), 0.5, 0);
+      const j2 = j1.clone(); j2.position.x = lt+1.8;
+      fr.clamp.add(bar, j1, j2); fr.clamp.position.y = hx/2; g.add(fr.clamp); }
+    parts.frames.push(fr);
+  });
+  parts.cross = mesh(new THREE.BoxGeometry(L, SEC.crossH, SEC.crossW), mats.wood); parts.cross.position.y = hx/2; assembly.add(parts.cross);
+  [-1,1].forEach(sx => { const w = mesh(new THREE.BoxGeometry(1.5, 12, 1.5), mats.wood); w.position.x = sx*D.wedgeX; assembly.add(w); parts.wedges.push(w); });
+
+  buildPieces();
+  renderRefs(); renderMaterials(); renderSummary(); renderStepPanel(); renderStepList();
+}
+
+/* ---------- Pieces layout ---------- */
+function buildPieces(){
+  disposeGroup(piecesGroup);
+  Object.values(pieceMats).forEach(m => m.dispose()); pieceMats = {};
+  const labelsEl = $('#labels'); labelsEl.innerHTML = ''; pieceRows = [];
+  piecesGroup = new THREE.Group(); piecesGroup.visible = false; scene.add(piecesGroup);
+  const woodMat = key => pieceMats[key] || (pieceMats[key] = new THREE.MeshStandardMaterial({map:tex.wood, roughness:0.72}));
+  const metalMat = key => pieceMats[key] || (pieceMats[key] = mats.metal.clone());
+  const {L,Wt,n,topT,nRods,hx,wx,legCut,rodBuy} = D;
+  const W = WOODS[state.wood].short;
+  const rows = [
+    {key:'tabla25', dir:'z', label:`<b>${n} × tabla 2×5"</b> ${fmt(L)} cm`, items: Array.from({length:n}, () => { const m = mesh(new THREE.BoxGeometry(L, topT, SEC.boardW), woodMat('tabla25')); return m; })},
+    {key:'tabla24', dir:'x', label:`<b>4 × pata 2×4"</b> corte de ${legCut} cm`, items: [0,1,2,3].map(i => { const m = mesh(legGeometry(i%2===1), woodMat('tabla24')); m.rotation.z = -Math.PI/2; return m; })},
+    {key:'tabla24', dir:'z', label:`<b>1 × travesaño</b> ${fmt(L)} cm, ${SEC.crossW}×${SEC.crossH} cm`, items: [mesh(new THREE.BoxGeometry(L, SEC.crossW, SEC.crossH), woodMat('tabla24'))]},
+    {key:'liston', dir:'z', label:`<b>2 × listón</b> ${fmt(wx)} cm`, items: [0,1].map(() => mesh(new THREE.BoxGeometry(wx, SEC.listT, SEC.listW), woodMat('liston')))},
+    {key:'hilo', dir:'z', label:`<b>${nRods} × hilo estriado 12 mm</b> ${rodBuy/100} m`, items: Array.from({length:nRods}, () => { const m = mesh(new THREE.CylinderGeometry(0.6,0.6,rodBuy,14), metalMat('hilo')); m.rotation.z = Math.PI/2; return m; })},
+    {key:'fij', dir:'x', label:`<b>Tuercas, golillas y tornillos</b>`, items: [
+      ...Array.from({length:nRods*2}, () => { const m = mesh(new THREE.CylinderGeometry(1.1,1.1,1,6), metalMat('tuercas')); m.userData.key='tuercas'; return m; }),
+      ...Array.from({length:nRods*2}, () => { const m = mesh(new THREE.CylinderGeometry(1.45,1.45,0.25,20), metalMat('golillas')); m.userData.key='golillas'; return m; }),
+      ...Array.from({length:D.screws}, () => { const g = new THREE.Group(); const sh = mesh(new THREE.CylinderGeometry(0.22,0.22,6.3,8), metalMat('tornillos')); sh.rotation.z = Math.PI/2; const hd = mesh(new THREE.CylinderGeometry(0.5,0.5,0.25,12), metalMat('tornillos')); hd.rotation.z = Math.PI/2; hd.position.x = -3.2; g.add(sh, hd); g.userData.key='tornillos'; return g; })
+    ]},
+    {key:'estacas', dir:'x', label:`<b>2 × estaca</b> 12 cm`, items: [0,1].map(() => { const m = mesh(new THREE.BoxGeometry(12,1.5,1.5), woodMat('estacas')); return m; })}
+  ];
+  let zCur = 0; const gap = 3, rowGap = 16;
+  const box = new THREE.Box3();
+  rows.forEach(row => {
+    let cursor = 0, depth = 0, width = 0;
+    row.items.forEach(it => {
+      const key = it.userData.key || row.key;
+      it.traverse(o => { o.userData.key = key; });
+      it.position.set(0,0,0); it.updateMatrixWorld(true); box.setFromObject(it);
+      const sz = new THREE.Vector3(); box.getSize(sz);
+      if (row.dir === 'z'){ it.position.set(-box.min.x, -box.min.y, zCur + cursor - box.min.z); cursor += sz.z + gap; depth = cursor; width = Math.max(width, sz.x); }
+      else { const g2 = (row.key==='fij') ? 1.2 : 8; it.position.set(cursor - box.min.x, -box.min.y, zCur - box.min.z); cursor += sz.x + g2; depth = Math.max(depth, sz.z); width = cursor; }
+      piecesGroup.add(it);
+    });
+    const el = document.createElement('div'); el.className = 'plabel'; el.innerHTML = row.label; labelsEl.appendChild(el);
+    pieceRows.push({key:row.key, el, anchor:new THREE.Vector3(0, 0, zCur), zStart:zCur, depth});
+    zCur += depth + rowGap;
+  });
+  piecesGroup.updateMatrixWorld(true);
+  const all = new THREE.Box3().setFromObject(piecesGroup); const ctr = new THREE.Vector3(); all.getCenter(ctr);
+  const sz = new THREE.Vector3(); all.getSize(sz);
+  piecesGroup.children.forEach(ch => { ch.position.x -= ctr.x; ch.position.z -= ctr.z; });
+  pieceRows.forEach(r => { r.anchor.set(-ctr.x, 0, r.zStart - ctr.z); });
+  piecesGroup.userData.size = sz;
+  applyHighlight();
+}
+
+/* ---------- State application ---------- */
+let clock = 0;
+function applyState(s, t){
+  const P = k => s < k ? 0 : (s > k ? 1 : t);
+  const {L,Wt,n,topT,nRods,rodX,hx,wx,c,xFrame,H,rv} = D, bw = SEC.boardW, lt = SEC.legT;
+  assembly.visible = true; piecesGroup.visible = false;
+  hideTools();
+
+  // top group location
+  const aside = ease(clamp(P(6)*4)), lift = ease(clamp(P(12)*2 - 1));
+  const zAside = -(Wt/2 + wx/2 + 42);
+  if (lift > 0) topGroup.position.set(0, lerp(topT/2, H - topT/2, lift) + Math.sin(Math.PI*lift)*24, lerp(zAside, 0, lift));
+  else topGroup.position.set(0, topT/2, lerp(0, zAside, aside));
+  const tp = topGroup.position;
+
+  // boards
+  const P3 = P(3), G = 6; let cum = 0; const zs = [];
+  parts.boards.forEach((b,i) => {
+    if (i > 0){ const q = clamp((P3/0.8)*(n-1) - (i-1)); cum += G*(1-q); }
+    b.position.z = b.userData.zFinal + cum;
+    b.position.y = b.userData.jit * P3 * (1 - P(5));
+    zs.push(b.position.z);
+  });
+  const total = n*nRods, eps = 1e-6, showMarks = P(4) === 0;
+  parts.marks.forEach(o => o.m.visible = showMarks && P(0) >= (o.idx+1)/total - eps);
+  parts.axes.forEach(o => { const sc = clamp(P(0)*n - o.i); o.m.visible = showMarks && sc > 0.001; o.m.scale.x = Math.max(sc, 0.001); o.m.position.x = -L/2*(1-sc); });
+  parts.holes.forEach(o => o.m.visible = P(1) >= (o.idx+1)/total - eps);
+  parts.cbores.forEach(o => o.m.visible = P(2) >= (o.idx+1)/(2*nRods) - eps);
+  const slide = 1 - ease(clamp(P3/0.18));
+  parts.rods.forEach((r,k) => {
+    r.visible = P3 > 0.02;
+    const cp = ease(clamp(P(4)*nRods - k));
+    const len = lerp(D.rodBuy, D.rodFinal, cp);
+    const z0 = -D.rodFinal/2 + slide*D.rodBuy*0.9;
+    r.scale.y = len; r.position.set(rodX[k], 0, z0 + len/2);
+  });
+  parts.nuts.forEach(m => m.visible = P3 > 0.88);
+
+  // frames
+  const legsOn = P(6) > 0, rectPhase = P(6) < 0.6, offs = (1 - ease(P(9))) * lt/2;
+  parts.frames.forEach(fr => {
+    fr.g.visible = legsOn;
+    fr.g.position.y = rectPhase ? 7 : 0;
+    fr.legs.forEach((l,j) => { l.holder.position.x = j===0 ? -offs : offs; l.rect.visible = rectPhase; l.para.visible = !rectPhase; });
+    fr.card.visible = P(6) > 0 && P(8) === 0;
+    fr.outline.visible = P(7) > 0 && P(9) === 0; fr.outline.position.x = offs + lt/2 + 0.14;
+    const os = 0.25 + 0.75*ease(P(7)); fr.outline.scale.set(1, os, os);
+    fr.notch.visible = P(8) > 0 && P(9) === 0; fr.notch.position.x = offs + lt/2 + 0.1;
+    fr.clamp.visible = s === 9;
+    fr.clamp.children[1].position.x = -(offs*2 + lt/2 + 0.8); fr.clamp.children[2].position.x = offs*2 + lt/2 + 0.8;
+    fr.liston.visible = P(10) > 0; fr.liston.position.y = hx + SEC.listT/2 + 40*(1 - ease(P(10)));
+    fr.screws.forEach(sc => { sc.visible = P(10) > 0.85; sc.position.y = hx + SEC.listT + 0.1; });
+    const ms = Math.max(0.001, ease(P(11)));
+    fr.mortise.forEach(m => { m.visible = P(11) > 0; m.scale.set(1, ms, ms); });
+  });
+  mats.notch.opacity = 0.15 + 0.65*ease(P(8));
+  parts.cross.visible = P(12) > 0; parts.cross.position.x = (L + 70)*(1 - ease(clamp(P(12)*2)));
+  parts.wedges.forEach(w => { w.visible = P(13) > 0; w.position.y = hx/2 + 26*(1 - ease(P(13))); });
+
+  // finish
+  let map = tex.wood;
+  if (state.finish === 'decapado'){ const p = P(14); if (p > 0 && p < 0.62) map = tex.paint; else if (p >= 0.62) map = tex.decape; }
+  if (mats.wood.map !== map){ mats.wood.map = map; mats.wood.needsUpdate = true; }
+  mats.wood.roughness = lerp(0.8, 0.3, ease(P(15)));
+
+  if (state.mode !== 'armado') return;
+
+  // tools per step
+  const topY = tp.y + topT/2;
+  if (s === 0 && t < 1){
+    const idx = Math.min(total-1, Math.floor(t*total)), i = Math.floor(idx/nRods), k = idx % nRods;
+    T.pencil.visible = true; T.pencil.rotation.set(-0.5, 0, 0);
+    T.pencil.position.set(tp.x + rodX[k] + Math.sin(clock*18)*0.6, tp.y + parts.boards[i].position.y + 0.8, tp.z + zs[i] + bw/2 + 0.15);
+  }
+  if ((s === 1 || s === 2) && t < 1){
+    const cnt = s === 1 ? total : 2*nRods;
+    const idx = Math.min(cnt-1, Math.floor(t*cnt)), frac = t*cnt - idx, pen = Math.sin(frac*Math.PI)*(s===1?6:1.2);
+    let i, k, side;
+    if (s === 1){ i = Math.floor(idx/nRods); k = idx % nRods; side = 1; }
+    else { side = idx < nRods ? -1 : 1; i = side < 0 ? 0 : n-1; k = idx % nRods; }
+    T.drill.visible = true;
+    T.drill.userData.bitS.visible = s === 1; T.drill.userData.bitB.visible = s === 2; T.drill.userData.shaft.visible = s === 2;
+    T.drill.rotation.set(0, side < 0 ? Math.PI : 0, 0);
+    T.drill.position.set(tp.x + rodX[k], tp.y + parts.boards[i].position.y, tp.z + zs[i] + side*(bw/2 + 0.4 - pen));
+  }
+  if (s === 4 && t < 1){
+    const k = Math.min(nRods-1, Math.floor(t*nRods));
+    T.grinder.visible = true; T.grinder.rotation.set(0,0,0);
+    const gp = new THREE.Vector3(tp.x + rodX[k] + Math.sin(clock*40)*0.15, tp.y, tp.z + D.rodFinal/2 + 0.25);
+    T.grinder.position.copy(gp);
+    const pa = T.sparks.geometry.attributes.position, seeds = T.sparks.userData.seeds;
+    seeds.forEach((sd,i) => { const age = ((clock*1.8 + sd[0]) % 1); pa.setXYZ(i, gp.x + sd[1]*18*age, gp.y - 2 - 20*age*age + sd[3]*4*age, gp.z + 3 + Math.abs(sd[2])*22*age); });
+    pa.needsUpdate = true; T.sparks.visible = true;
+  }
+  if (s === 5 && t < 1){ placeSweep(T.sander, t, tp, topY, 3); T.sander.rotation.y = clock*20; }
+  if (s === 6 && t > 0.2 && t < 0.62){
+    const u = clamp((t-0.22)/0.36), fr = parts.frames[1];
+    T.saw.visible = true;
+    const lower = u >= 0.5, uu = (u % 0.5)*2;
+    T.saw.position.set(fr.g.position.x, fr.g.position.y + (lower ? 0.4 : hx + 0.4), lerp(-wx/2 - 14, wx/2 + 14, uu));
+    T.saw.children[0].rotation.y = clock*30;
+  }
+  if (s === 7 && t < 1){
+    const fr = parts.frames[1], ang = t*Math.PI*2;
+    const r = Math.abs(Math.cos(ang)) + Math.abs(Math.sin(ang));
+    T.pencil.visible = true; T.pencil.rotation.set(0.35, Math.PI/2, 0);
+    T.pencil.position.set(fr.g.position.x + offs + lt/2 + 0.2, hx/2 + Math.sin(ang)/r*rv, Math.cos(ang)/r*(c/2));
+  }
+  if (s === 8 && t < 1){
+    const fr = parts.frames[1];
+    T.chisel.visible = true; T.chisel.rotation.set(0, 0, -0.35);
+    T.chisel.position.set(fr.g.position.x + offs + lt/2 + 0.6 + Math.abs(Math.sin(clock*9))*2.2, hx/2 + Math.sin(t*9)*rv*0.5, Math.cos(t*7)*c*0.3);
+  }
+  if (s === 11 && t < 1){
+    const fr = parts.frames[1], cnt = 4, idx = Math.min(cnt-1, Math.floor(t*cnt)), frac = t*cnt - idx, pen = Math.sin(frac*Math.PI)*4.5;
+    const oy = [-2.2, 2.2, -2.2, 2.2][idx], oz = [-0.9, -0.9, 0.9, 0.9][idx];
+    T.drill.visible = true; T.drill.userData.bitS.visible = true; T.drill.userData.bitB.visible = false; T.drill.userData.shaft.visible = false;
+    T.drill.rotation.set(0, Math.PI/2, 0);
+    T.drill.position.set(fr.g.position.x + lt/2 + 0.4 - pen, hx/2 + oy, oz);
+  }
+  if (s === 14 && t < 1 && state.finish === 'decapado'){ placeSweep(T.spatula, t, tp, topY, 4); T.spatula.rotation.y = Math.sin(clock*6)*0.4; }
+  if (s === 15 && t < 1){ placeSweep(T.brush, t, tp, topY, 4); }
+}
+function placeSweep(tool, t, tp, topY, rows){
+  const {L, Wt} = D; const row = Math.min(rows-1, Math.floor(t*rows)), f = t*rows - row;
+  const x = lerp(-L/2 + 9, L/2 - 9, row % 2 ? 1 - f : f);
+  const z = lerp(-Wt/2 + 7, Wt/2 - 7, (row + 0.5)/rows);
+  tool.visible = true; tool.position.set(tp.x + x, topY + 0.05, tp.z + z);
+}
+
+function applyPieces(){
+  assembly.visible = false; hideTools(); piecesGroup.visible = true;
+  Object.values(pieceMats).forEach(m => { if (m.map) m.map = tex.wood; });
+}
+
+/* ---------- Highlight ---------- */
+const HL_GROUPS = {fij:['tuercas','golillas','tornillos']};
+function applyHighlight(){
+  const h = state.highlight;
+  Object.entries(pieceMats).forEach(([k,m]) => { m.emissive = new THREE.Color(h && (k===h || (HL_GROUPS[h]||[]).includes(k)) ? 0x6b5200 : 0x000000); });
+  pieceRows.forEach(r => r.el.classList.toggle('hl', !!h && (r.key === h || (r.key === 'fij' && ['tuercas','golillas','tornillos'].includes(h)))));
+  document.querySelectorAll('#matBody tr').forEach(tr => tr.classList.toggle('hl', tr.dataset.key === h));
+}
+function setHighlight(key){ state.highlight = (state.highlight === key) ? null : key; applyHighlight(); }
+
+/* ---------- Camera ---------- */
+let camAnim = null;
+function flyTo(target, dist){
+  const dir = camera.position.clone().sub(controls.target);
+  if (dir.lengthSq() < 1) dir.set(0.85, 0.62, 1);
+  dir.normalize();
+  if (dir.y < 0.25){ dir.y = 0.35; dir.normalize(); }
+  camAnim = {t:0, fromT:controls.target.clone(), toT:target.clone(), fromP:camera.position.clone(), toP:target.clone().add(dir.multiplyScalar(dist))};
+}
+function phaseOf(s){ return STEPS[s].ph; }
+function camFor(){
+  const {L,Wt,H,hx,wx} = D;
+  if (state.mode === 'piezas'){ const sz = piecesGroup.userData.size; return [new THREE.Vector3(0,0,0), Math.max(sz.x, sz.z*1.3)*1.05]; }
+  if (state.mode === 'armado'){
+    const ph = phaseOf(state.step);
+    if (ph === 0) return [new THREE.Vector3(0, 6, 8), Math.max(L, Wt + 50)*1.35];
+    if (ph === 1) return [new THREE.Vector3(0, hx*0.45, -(Wt/2 + wx/2 + 42)*0.35), Math.max(L, H*1.6, Wt*2)*1.45];
+  }
+  return [new THREE.Vector3(0, H*0.45, 0), Math.max(L, Wt, H)*1.8];
+}
+function refocus(){ const [t,d] = camFor(); flyTo(t,d); }
+
+/* ---------- 2D drawings ---------- */
+const r1 = v => Math.round(v*10)/10;
+function tick(x,y){ return `<line class="tk" x1="${r1(x-2.6)}" y1="${r1(y+2.6)}" x2="${r1(x+2.6)}" y2="${r1(y-2.6)}"/>`; }
+function dimH(x1,x2,y,label,e1,e2){
+  let s = `<g class="sv-dim">`;
+  if (e1 != null) s += `<line x1="${r1(x1)}" y1="${r1(e1)}" x2="${r1(x1)}" y2="${r1(y + (y<e1?-3:3))}"/>`;
+  if (e2 != null) s += `<line x1="${r1(x2)}" y1="${r1(e2)}" x2="${r1(x2)}" y2="${r1(y + (y<e2?-3:3))}"/>`;
+  s += `<line x1="${r1(x1-3)}" y1="${r1(y)}" x2="${r1(x2+3)}" y2="${r1(y)}"/>` + tick(x1,y) + tick(x2,y);
+  s += `<text x="${r1((x1+x2)/2)}" y="${r1(y-3.5)}" text-anchor="middle">${label}</text></g>`;
+  return s;
+}
+function dimV(x,y1,y2,label,e1,e2){
+  let s = `<g class="sv-dim">`;
+  if (e1 != null) s += `<line x1="${r1(e1)}" y1="${r1(y1)}" x2="${r1(x + (x<e1?-3:3))}" y2="${r1(y1)}"/>`;
+  if (e2 != null) s += `<line x1="${r1(e2)}" y1="${r1(y2)}" x2="${r1(x + (x<e2?-3:3))}" y2="${r1(y2)}"/>`;
+  s += `<line x1="${r1(x)}" y1="${r1(y1-3)}" x2="${r1(x)}" y2="${r1(y2+3)}"/>` + tick(x,y1) + tick(x,y2);
+  s += `<text transform="translate(${r1(x-4)} ${r1((y1+y2)/2)}) rotate(-90)" text-anchor="middle">${label}</text></g>`;
+  return s;
+}
+function rect(x,y,w,h,cls='sv-part'){ return `<rect class="${cls}" x="${r1(x)}" y="${r1(y)}" width="${r1(Math.max(w,0.5))}" height="${r1(Math.max(h,0.5))}"/>`; }
+function poly(pts,cls='sv-part'){ return `<polygon class="${cls}" points="${pts.map(p=>r1(p[0])+','+r1(p[1])).join(' ')}"/>`; }
+function svg(w,h,inner,label,pctW){ return `<svg viewBox="0 0 ${r1(w)} ${r1(h)}" style="width:${pctW||100}%" role="img" aria-label="${label}">${inner}</svg>`; }
+
+function renderRefs(){
+  const {L,Wt,H,topT,hx,wx,c,xFrame,inset,n,rodX,angle,rv} = D, lt = SEC.legT;
+  const VW = 300, ml = 16, mr = 44, avail = VW - ml - mr;
+  const s = Math.min(avail / L, avail / Wt, 190 / H);
+  // front view
+  {
+    const mt = 28, mb = 32, w = ml + L*s + mr, h = mt + H*s + mb;
+    const X = x => ml + (x + L/2)*s, Y = y => mt + (H - y)*s;
+    let g = `<line class="sv-floor" x1="${X(-L/2)-8}" y1="${Y(0)}" x2="${X(L/2)+8}" y2="${Y(0)}"/>`;
+    [-1,1].forEach(sx => { g += rect(X(sx*xFrame - lt/2), Y(hx), lt*s, hx*s); });
+    g += rect(X(-L/2), Y(hx/2 + SEC.crossH/2), L*s, SEC.crossH*s);
+    [-1,1].forEach(sx => { g += rect(X(sx*xFrame - SEC.listW/2), Y(hx + SEC.listT), SEC.listW*s, SEC.listT*s); g += rect(X(sx*D.wedgeX - 0.75), Y(hx/2 + 6), 1.5*s, 12*s); });
+    g += rect(X(-L/2), Y(H), L*s, topT*s);
+    g += dimH(X(-L/2), X(L/2), mt - 14, fmt(L), Y(H), Y(H));
+    g += dimV(X(L/2) + 26, Y(H), Y(0), fmt(H), X(L/2)+2, X(L/2)+2);
+    g += dimV(X(L/2) + 12, Y(H), Y(H - topT), fmt(topT), X(L/2)+2, X(L/2)+2);
+    g += dimH(X(-L/2), X(-xFrame), Y(0) + 18, fmt(inset), Y(H - topT), Y(0));
+    var front = svg(w, h, g, 'Vista frontal', w/VW*100);
+  }
+  // side view
+  {
+    const mt = 28, mb = 32, w = ml + Wt*s + mr + 16, h = mt + H*s + mb;
+    const Z = z => ml + (z + Wt/2)*s, Y = y => mt + (H - y)*s;
+    const A = [[-wx/2,0],[-wx/2+c,0],[wx/2,hx],[wx/2-c,hx]];
+    let g = `<line class="sv-floor" x1="${Z(-Wt/2)-8}" y1="${Y(0)}" x2="${Z(Wt/2)+8}" y2="${Y(0)}"/>`;
+    g += poly(A.map(([z,y]) => [Z(z), Y(y)]));
+    g += poly(A.map(([z,y]) => [Z(-z), Y(y)]));
+    g += rect(Z(-SEC.crossW/2), Y(hx/2 + SEC.crossH/2), SEC.crossW*s, SEC.crossH*s);
+    g += rect(Z(-wx/2), Y(hx + SEC.listT), wx*s, SEC.listT*s);
+    g += rect(Z(-Wt/2), Y(H), Wt*s, topT*s);
+    g += dimH(Z(-Wt/2), Z(Wt/2), mt - 14, fmt(Wt), Y(H), Y(H));
+    g += dimH(Z(-wx/2), Z(wx/2), Y(0) + 18, fmt(wx), Y(0), Y(0));
+    g += dimV(Z(Wt/2) + 14, Y(hx), Y(0), fmt(hx), Z(wx/2)+2, Z(wx/2)+2);
+    g += dimV(Z(Wt/2) + 32, Y(H), Y(0), fmt(H), Z(Wt/2)+2, Z(Wt/2)+2);
+    g += `<text class="sv-t m" x="${r1(Z(-wx/2 + c) + 3)}" y="${r1(Y(0) - 4)}">${Math.round(angle)}°</text>`;
+    var side = svg(w, h, g, 'Vista lateral', w/VW*100);
+  }
+  // plan view
+  {
+    const mt = 26, mb = 30, w = ml + L*s + mr, h = mt + Wt*s + mb;
+    const X = x => ml + (x + L/2)*s, Zp = z => mt + (z + Wt/2)*s;
+    let g = rect(X(-L/2), Zp(-Wt/2), L*s, Wt*s);
+    for (let i=1;i<n;i++){ const z = -Wt/2 + i*SEC.boardW; g += `<line class="sv-line" x1="${r1(X(-L/2))}" y1="${r1(Zp(z))}" x2="${r1(X(L/2))}" y2="${r1(Zp(z))}"/>`; }
+    rodX.forEach(x => { g += `<line class="sv-hidden" x1="${r1(X(x))}" y1="${r1(Zp(-Wt/2))}" x2="${r1(X(x))}" y2="${r1(Zp(Wt/2))}"/>`; });
+    [-1,1].forEach(sx => { g += `<rect class="sv-hidden" x="${r1(X(sx*xFrame - SEC.listW/2))}" y="${r1(Zp(-wx/2))}" width="${r1(SEC.listW*s)}" height="${r1(wx*s)}"/>`; });
+    g += dimH(X(-L/2), X(rodX[0]), mt - 12, '15', Zp(-Wt/2), Zp(-Wt/2));
+    if (rodX.length > 1) g += dimH(X(rodX[0]), X(rodX[1]), mt - 12, fmt(rodX[1]-rodX[0]), Zp(-Wt/2), Zp(-Wt/2));
+    g += dimV(X(L/2) + 16, Zp(-Wt/2), Zp(Wt/2), fmt(Wt), X(L/2)+2, X(L/2)+2);
+    g += `<text class="sv-t m" x="${r1(X(-L/2))}" y="${r1(Zp(Wt/2) + 16)}">${n} tablas de ${fmt(SEC.boardW)} cm; hilos punteados, listones bajo la cubierta</text>`;
+    var plan = svg(w, h, g, 'Planta', w/VW*100);
+  }
+  $('#refLeft').innerHTML = `<h2>La mesa</h2><p class="sub">Misma escala en las tres vistas. Cotas en cm.</p>
+    <figure><h3>Vista frontal</h3>${front}<figcaption>Largo, alto y posición de las cruces.</figcaption></figure>
+    <figure><h3>Vista lateral</h3>${side}<figcaption>Patas en X, listón y travesaño en corte.</figcaption></figure>
+    <figure><h3>Planta</h3>${plan}<figcaption>Tablas de la cubierta y ubicación de los hilos.</figcaption></figure>`;
+
+  // pieces
+  const PW = 260, pm = 12;
+  const piece = (title, qty, drawing, cap) => `<figure><h3>${title} <span class="sv-t m" style="font-size:.85rem;font-weight:500">× ${qty}</span></h3>${drawing}<figcaption>${cap}</figcaption></figure>`;
+  let out = `<h2>Las piezas</h2><p class="sub">Cada pieza a su propia escala. Cotas en cm.</p>`;
+  { // board
+    const sp = (PW - 2*pm)/L, hh = Math.max(16, SEC.boardW*sp), y0 = 26, X = x => pm + (x + L/2)*sp;
+    let g = rect(pm, y0, L*sp, hh);
+    g += `<line class="sv-cut" x1="${pm}" y1="${r1(y0+hh/2)}" x2="${r1(pm+L*sp)}" y2="${r1(y0+hh/2)}" stroke-dasharray="4 3"/>`;
+    rodX.forEach(x => { g += `<circle class="sv-hole" cx="${r1(X(x))}" cy="${r1(y0+hh/2)}" r="2.2"/>`; });
+    g += dimH(pm, pm + L*sp, y0 - 10, fmt(L), y0, y0);
+    g += dimH(pm, X(rodX[0]), y0 + hh + 14, '15', y0+hh, y0+hh);
+    if (rodX.length > 1) g += dimH(X(rodX[0]), X(rodX[1]), y0 + hh + 14, fmt(rodX[1]-rodX[0]), y0+hh, y0+hh);
+    out += piece('Tabla de cubierta 2×5"', n, svg(PW, y0 + hh + 24, g, 'Tabla de cubierta'), `Sección ${fmt(SEC.boardT)} × ${fmt(SEC.boardW)}. Agujeros de 13 mm por el canto, a eje.`);
+  }
+  { // leg
+    const lc = D.legCut, sp = (PW - 2*pm)/lc, hh = SEC.legW*sp, y0 = 26, e = D.e, k = D.kShift, x0 = (lc - e - k)/2;
+    const X = x => pm + x*sp, Yb = y0 + hh, Yt = y0;
+    let g = rect(X(0), Yt, lc*sp, hh, 'sv-line');
+    g += poly([[X(x0), Yb],[X(x0+e), Yb],[X(x0+e+k), Yt],[X(x0+k), Yt]]);
+    g += `<line class="sv-cut" x1="${r1(X(x0))}" y1="${r1(Yb)}" x2="${r1(X(x0+k))}" y2="${r1(Yt)}"/><line class="sv-cut" x1="${r1(X(x0+e))}" y1="${r1(Yb)}" x2="${r1(X(x0+e+k))}" y2="${r1(Yt)}"/>`;
+    const mid = x0 + (e + k)/2, cw = D.c*0.5;
+    g += `<rect class="sv-hidden" x="${r1(X(mid - cw))}" y="${r1(Yt)}" width="${r1(cw*2*sp)}" height="${r1(hh)}"/>`;
+    g += dimH(X(0), X(lc), y0 - 10, String(lc), Yt, Yt);
+    g += `<text class="sv-t m" x="${r1(X(x0+k)+3)}" y="${r1(Yb + 14)}">corte ≈${Math.round(angle)}°</text>`;
+    out += piece('Pata 2×4"', 4, svg(PW, Yb + 22, g, 'Pata'), `Sección ${fmt(SEC.legT)} × ${fmt(SEC.legW)}. En rojo, los cortes en diagonal; punteado, el calado a media madera.`);
+  }
+  { // liston
+    const sp = Math.min((PW - 2*pm)/wx, 3), hh = Math.max(12, SEC.listW*sp), y0 = 26;
+    let g = rect(pm, y0, wx*sp, hh);
+    g += dimH(pm, pm + wx*sp, y0 - 10, fmt(wx), y0, y0);
+    out += piece('Listón', 2, svg(PW, y0 + hh + 8, g, 'Listón'), `Sección ${fmt(SEC.listT)} × ${fmt(SEC.listW)}. Va atornillado sobre cada cruz.`);
+  }
+  { // crossbar
+    const sp = (PW - 2*pm)/L, hh = Math.max(12, SEC.crossH*sp), y0 = 26, X = x => pm + (x + L/2)*sp;
+    let g = rect(pm, y0, L*sp, hh);
+    [-1,1].forEach(sx => { g += `<rect class="sv-hidden" x="${r1(X(sx*xFrame - lt/2))}" y="${r1(y0-3)}" width="${r1(lt*sp)}" height="${r1(hh+6)}"/>`; g += `<rect class="sv-hole" x="${r1(X(sx*D.wedgeX) - 1.5)}" y="${r1(y0 + hh/2 - 2)}" width="3" height="4"/>`; });
+    g += dimH(pm, pm + L*sp, y0 - 10, fmt(L), y0, y0);
+    g += dimH(pm, X(-xFrame), y0 + hh + 14, fmt(inset), y0 + hh, y0 + hh);
+    out += piece('Travesaño', 1, svg(PW, y0 + hh + 22, g, 'Travesaño'), `Sección ${SEC.crossW} × ${SEC.crossH}, igual al calado de las cruces. Punteado, el paso por cada X; negro, el calado para la estaca.`);
+  }
+  { // rod
+    const sp = (PW - 2*pm)/D.rodBuy, y0 = 26;
+    let g = `<line class="sv-rod" x1="${pm}" y1="${y0}" x2="${r1(pm + D.rodBuy*sp)}" y2="${y0}"/>`;
+    g += `<line class="sv-cut" x1="${r1(pm + D.rodFinal*sp)}" y1="${y0-7}" x2="${r1(pm + D.rodFinal*sp)}" y2="${y0+7}"/>`;
+    g += dimH(pm, pm + D.rodBuy*sp, y0 - 12, fmt(D.rodBuy), y0 - 2, y0 - 2);
+    g += dimH(pm, pm + D.rodFinal*sp, y0 + 16, fmt(D.rodFinal), y0 + 2, y0 + 2);
+    out += piece('Hilo estriado 12 mm', D.nRods, svg(PW, y0 + 24, g, 'Hilo estriado'), `Se compra de ${fmt(D.rodBuy)} y se corta a ras de la tuerca (línea roja).`);
+  }
+  { // wedge
+    const sp = 6, y0 = 26;
+    let g = rect(pm, y0, 12*sp, 1.5*sp);
+    g += dimH(pm, pm + 12*sp, y0 - 10, '12', y0, y0);
+    g += dimV(pm + 12*sp + 16, y0, y0 + 1.5*sp, '1,5', pm + 12*sp + 2, pm + 12*sp + 2);
+    out += piece('Estaca', 2, svg(PW, y0 + 1.5*sp + 8, g, 'Estaca'), `Madera dura de 1,5 × 1,5; traba el travesaño por fuera de cada cruz.`);
+  }
+  $('#refRight').innerHTML = out;
+}
+
+/* ---------- Materials table ---------- */
+function renderMaterials(){
+  const d = D, w = WOODS[state.wood];
+  const b25 = pack(Array(d.n).fill(d.L));
+  const b24 = pack([d.legCut, d.legCut, d.legCut, d.legCut, d.L]);
+  const bl = pack([d.wx, d.wx]);
+  const plan = bins => bins.map((b,i) => `tabla ${i+1}: ${b.items.map(x => fmt(x)).join(' + ')}`).join('; ');
+  const lit = v => fmt(Math.max(0.25, ceilTo(v, 0.25)), 2);
+  const rows = [
+    {key:'tabla25', name:`Tabla de ${w.short} cepillada 2×5"`, q:`${b25.length}`, u:'de 3,20 m', det:`${d.n} cortes de ${fmt(d.L)} cm para la cubierta.`, sm:plan(b25)},
+    {key:'tabla24', name:`Tabla de ${w.short} cepillada 2×4"`, q:`${b24.length}`, u:'de 3,20 m', det:`4 patas de ${d.legCut} cm y 1 travesaño de ${fmt(d.L)} cm (rebajado a ${SEC.crossW}×${SEC.crossH}).`, sm:plan(b24)},
+    {key:'liston', name:`Listón de ${w.short} ${fmt(SEC.listT)}×${fmt(SEC.listW)} cm`, q:`${bl.length}`, u:'de 3,20 m', det:`2 trozos de ${fmt(d.wx)} cm.`, sm:''},
+    {key:'hilo', name:'Hilo estriado 12 mm', q:`${d.nRods}`, u:`de ${d.rodBuy/100} m`, det:`Se cortan a ${fmt(d.rodFinal)} cm una vez apretados.`, sm: d.rodBuy > 100 ? 'La cubierta supera 1 m de ancho: necesitas barras de más de 1 m.' : ''},
+    {key:'tuercas', name:'Tuercas 12 mm', q:`${d.nRods*2}`, u:'', det:'Una en cada extremo de cada hilo.', sm:''},
+    {key:'golillas', name:'Golillas 12 mm', q:`${d.nRods*2}`, u:'', det:'Van bajo cada tuerca.', sm:''},
+    {key:'tornillos', name:'Tornillos para madera 2½"', q:`${d.screws}`, u:'', det:`8 para fijar listones a las patas y ${d.n*2} para fijar la cubierta.`, sm:''},
+    {key:'estacas', name:'Estacas de madera', q:'2', u:'', det:'1,5 × 1,5 × 12 cm.', sm:''},
+    {key:null, name:'Cola fría', q:'1', u:'envase', det:'Para las uniones de la cubierta, la cruz y los listones.', sm:''},
+    {key:null, name:'Sellador para madera', q:lit(d.area/10), u:'L', det:`Una mano sobre ≈${fmt(d.area)} m².`, sm:''},
+    {key:null, name: state.use==='interior' ? 'Vitrificante' : 'Barniz exterior', q:lit(d.area*2/10), u:'L', det:'Dos manos sobre el sellador.', sm:''}
+  ];
+  if (state.finish === 'decapado'){
+    rows.splice(9, 0,
+      {key:null, name:'Pintura para madera', q:lit(d.area/10), u:'L', det:'Para mezclar con pasta muro y para los manchones.', sm:''},
+      {key:null, name:'Pasta muro', q:fmt(Math.max(1, ceilTo(d.area*0.4, 0.5))), u:'kg', det:'Se mezcla con la pintura para el decapado.', sm:''});
+  }
+  $('#matBody').innerHTML = rows.map(r => `<tr${r.key ? ` class="pick" data-key="${r.key}" tabindex="0"` : ''}><td>${r.name}${r.sm ? `<small>${r.sm}</small>` : ''}</td><td class="q">${r.q}${r.u ? ` <span style="font-family:Barlow,sans-serif;font-size:.85rem;font-weight:400;color:var(--muted)">${r.u}</span>` : ''}</td><td>${r.det}</td></tr>`).join('');
+  $('#matSub').textContent = `Para una mesa de ${fmt(d.L)} × ${fmt(d.Wt)} × ${fmt(d.H)} cm en ${w.name.toLowerCase()}. Toca una pieza para verla en 3D.`;
+  $('#matNote').textContent = `El ancho real queda en ${fmt(d.Wt)} cm porque la cubierta se arma con ${d.n} tablas enteras de ${fmt(SEC.boardW)} cm. Pinturas y barnices calculados con un rendimiento aproximado de 10 m² por litro.`;
+  applyHighlight();
+}
+function renderSummary(){
+  const d = D;
+  $('#summary').innerHTML = `<div class="stat"><b>${fmt(d.L)} × ${fmt(d.Wt)} × ${fmt(d.H)}</b><span>medida final en cm</span></div>
+    <div class="stat"><b>${d.n} + 4</b><span>tablas de cubierta y patas</span></div>
+    <div class="stat"><b>≈${Math.round(d.kg)} kg</b><span>peso en ${WOODS[state.wood].short}</span></div>`;
+}
+
+/* ---------- Steps UI ---------- */
+function renderStepList(){
+  let html = '';
+  PHASES.forEach((p,pi) => {
+    html += `<div><h4>${p}</h4><ol>`;
+    STEPS.forEach((st,i) => { if (st.ph !== pi) return;
+      const cls = state.mode === 'armado' ? (i === state.step ? 'active' : (i < state.step ? 'done' : '')) : '';
+      html += `<li><button type="button" data-step="${i}" class="${cls}"${i===state.step && state.mode==='armado' ? ' aria-current="step"' : ''}><span class="n">${i+1}</span><span>${st.title}</span></button></li>`;
+    });
+    html += `</ol></div>`;
+  });
+  $('#phases').innerHTML = html;
+}
+function renderStepPanel(){
+  const st = STEPS[state.step];
+  $('#plPhase').textContent = `${PHASES[st.ph]}, paso ${state.step+1} de ${STEPS.length}`;
+  $('#plTitle').textContent = st.title;
+  $('#plText').textContent = st.text(D);
+  $('#vpPhase').textContent = `Paso ${state.step+1} de ${STEPS.length}, ${PHASES[st.ph].toLowerCase()}`;
+  $('#vpTitle').textContent = st.title;
+  $('#vpCaption').hidden = state.mode !== 'armado';
+  $('#bPrev').disabled = state.step === 0; $('#bNext').disabled = state.step === STEPS.length-1;
+  updatePlayBtn();
+}
+function updatePlayBtn(){ $('#bPlay').textContent = state.playing ? 'Pausar' : (state.t >= 1 && state.step === STEPS.length-1 ? 'Ver de nuevo' : 'Reproducir'); }
+function goStep(i, autoplay){
+  const prevPh = STEPS[state.step].ph, wasArmado = state.mode === 'armado';
+  state.step = Math.max(0, Math.min(STEPS.length-1, i)); state.t = 0;
+  if (autoplay !== undefined) state.playing = autoplay;
+  setMode('armado', true);
+  if (!wasArmado || prevPh !== STEPS[state.step].ph) refocus();
+  renderStepPanel(); renderStepList();
+}
+
+/* ---------- Mode ---------- */
+function setMode(m, silent){
+  const changed = state.mode !== m;
+  state.mode = m;
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  if (m !== 'armado') state.playing = false;
+  $('#labels').style.display = m === 'piezas' ? '' : 'none';
+  if (changed && !silent) refocus();
+  if (changed){ renderStepPanel(); renderStepList(); }
+}
+
+/* ---------- Controls ---------- */
+const dimsCfg = [['L','rL','nL'],['W','rW','nW'],['H','rH','nH']];
+let rebuildQueued = false;
+function queueRebuild(refit){
+  if (rebuildQueued) return; rebuildQueued = true;
+  requestAnimationFrame(() => { rebuildQueued = false; build(); if (refit) refocus(); });
+}
+function sizeTicks(){
+  dimsCfg.forEach(([k,rid]) => {
+    const r = $('#'+rid), w = r.clientWidth - 4, span = r.max - r.min;
+    if (w > 0){ r.style.setProperty('--minor', (w*5/span).toFixed(2)+'px'); r.style.setProperty('--major', (w*10/span).toFixed(2)+'px'); }
+  });
+}
+dimsCfg.forEach(([k,rid,nid]) => {
+  const r = $('#'+rid), nEl = $('#'+nid);
+  r.value = state[k]; nEl.value = state[k];
+  r.addEventListener('input', () => { state[k] = +r.value; nEl.value = r.value; queueRebuild(true); });
+  nEl.addEventListener('change', () => { let v = Math.round(+nEl.value); if (!isFinite(v)) v = state[k]; v = Math.max(+r.min, Math.min(+r.max, v)); state[k] = v; nEl.value = v; r.value = v; queueRebuild(true); });
+});
+const woodSel = $('#wood');
+woodSel.innerHTML = Object.entries(WOODS).map(([k,w]) => `<option value="${k}">${w.name}</option>`).join('');
+woodSel.value = state.wood;
+woodSel.addEventListener('change', () => { state.wood = woodSel.value; makeTextures(); mats.wood.map = null; queueRebuild(false); });
+$('#finish').addEventListener('change', e => { state.finish = e.target.value; renderMaterials(); renderStepPanel(); });
+$('#use').addEventListener('change', e => { state.use = e.target.value; renderMaterials(); renderStepPanel(); });
+$('#t2d').addEventListener('change', e => { state.show2D = e.target.checked; $('#stage').classList.toggle('no-ref', !state.show2D); requestAnimationFrame(resize); });
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$('#phases').addEventListener('click', e => { const b = e.target.closest('button[data-step]'); if (b) goStep(+b.dataset.step, true); });
+$('#bPrev').addEventListener('click', () => goStep(state.step - 1, true));
+$('#bNext').addEventListener('click', () => goStep(state.step + 1, true));
+$('#bPlay').addEventListener('click', () => {
+  if (state.mode !== 'armado'){ goStep(state.step, true); return; }
+  if (state.playing){ state.playing = false; }
+  else { if (state.t >= 1){ if (state.step === STEPS.length-1){ goStep(0, true); return; } state.t = 0; } state.playing = true; }
+  updatePlayBtn();
+});
+$('#scrub').addEventListener('input', e => { if (state.mode !== 'armado') setMode('armado'); state.t = +e.target.value/1000; state.playing = false; updatePlayBtn(); });
+$('#chain').addEventListener('change', e => { state.chain = e.target.checked; });
+function tableAct(e){ const tr = e.target.closest('tr.pick'); if (!tr) return; if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); setMode('piezas'); setHighlight(tr.dataset.key); }
+$('#matBody').addEventListener('click', tableAct);
+$('#matBody').addEventListener('keydown', tableAct);
+
+// click pieces in 3D
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!downAt || state.mode !== 'piezas') return;
+  if (Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+  const rc = renderer.domElement.getBoundingClientRect();
+  ndc.set(((e.clientX - rc.left)/rc.width)*2 - 1, -((e.clientY - rc.top)/rc.height)*2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(piecesGroup.children, true)[0];
+  if (hit){ const key = hit.object.userData.key; setHighlight(key === 'fij' ? 'tuercas' : key); }
+  else { state.highlight = null; applyHighlight(); }
+});
+
+/* ---------- Loop ---------- */
+function resize(){
+  const w = vp.clientWidth, h = vp.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix(); sizeTicks();
+}
+new ResizeObserver(resize).observe(vp);
+window.addEventListener('resize', sizeTicks);
+
+function updateLabels(){
+  if (state.mode !== 'piezas') return;
+  const w = vp.clientWidth, h = vp.clientHeight, v = new THREE.Vector3();
+  pieceRows.forEach(r => {
+    v.copy(r.anchor); v.project(camera);
+    const x = (v.x + 1)/2*w, y = (1 - v.y)/2*h;
+    r.el.style.display = (v.z < 1 && x > -200 && x < w + 50 && y > -40 && y < h + 40) ? '' : 'none';
+    r.el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(0, -120%)`;
+  });
+}
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now - last)/1000); last = now; clock += dt;
+  if (state.mode === 'armado' && state.playing){
+    state.t += dt / STEPS[state.step].dur;
+    if (state.t >= 1){
+      if (state.chain && state.step < STEPS.length - 1){ goStep(state.step + 1, true); }
+      else { state.t = 1; state.playing = false; updatePlayBtn(); }
+    }
+    $('#scrub').value = Math.round(state.t*1000);
+  }
+  if (state.mode === 'mesa') applyState(99, 1);
+  else if (state.mode === 'armado') applyState(state.step, state.t);
+  else applyPieces();
+  $('#vpProg').style.width = state.mode === 'armado' ? ((state.step + state.t)/STEPS.length*100).toFixed(2) + '%' : '0';
+  if (camAnim){
+    camAnim.t += dt/0.85; const e = ease(Math.min(1, camAnim.t));
+    controls.target.lerpVectors(camAnim.fromT, camAnim.toT, e);
+    camera.position.lerpVectors(camAnim.fromP, camAnim.toP, e);
+    if (camAnim.t >= 1) camAnim = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  updateLabels();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Init ---------- */
+applyTheme();
+makeTextures();
+build();
+{ const [t,d] = camFor(); controls.target.copy(t); camera.position.copy(t.clone().add(new THREE.Vector3(0.85,0.6,1).normalize().multiplyScalar(d))); }
+setMode('mesa', true);
+$('#labels').style.display = 'none';
+renderStepPanel(); renderStepList();
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

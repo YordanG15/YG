@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Instalación eléctrica residencial 3D · RIC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#14212e; --muted:#566473; --line:#d4dbe2;
+  --accent:#1e63d6; --fase:#d62828; --tierra:#2e9e44; --warn:#b7791f; --ok:#2e7d4f;
+  --viewer:#e3e8ee; --room:#f6f8fa; --wallfill:#dfe5ec; --ground:#b9c4b1; --soft:#f3f6f9;
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#10161d; --panel:#18212b; --ink:#e4e9ee; --muted:#93a1af; --line:#2b3642;
+    --accent:#6fa3ff; --fase:#ff5a5a; --tierra:#4fc36a; --warn:#e0a44a; --ok:#57c07f;
+    --viewer:#131b23; --room:#1c2631; --wallfill:#243140; --ground:#2f3a2c; --soft:#1d2733;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10161d; --panel:#18212b; --ink:#e4e9ee; --muted:#93a1af; --line:#2b3642;
+  --accent:#6fa3ff; --fase:#ff5a5a; --tierra:#4fc36a; --warn:#e0a44a; --ok:#57c07f;
+  --viewer:#131b23; --room:#1c2631; --wallfill:#243140; --ground:#2f3a2c; --soft:#1d2733;
+  color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans)}
+h1,h2,h3{font-family:var(--cond);font-weight:600;line-height:1.1;margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wire{height:6px;background:linear-gradient(to bottom,var(--fase) 0 33%,#f4f4f4 33% 66%,var(--tierra) 66%)}
+header.top{padding:18px clamp(14px,3vw,32px) 14px;display:flex;flex-wrap:wrap;gap:8px 24px;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);background:var(--panel)}
+header.top h1{font-size:clamp(1.6rem,3.2vw,2.4rem);letter-spacing:-.01em}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:70ch;font-size:.95rem}
+.src{font-size:.85rem;color:var(--muted);max-width:44ch}
+
+.work{display:grid;grid-template-columns:290px 1fr;gap:0;min-height:0}
+@media (max-width:980px){.work{grid-template-columns:1fr}}
+aside.ctrl{background:var(--panel);border-right:1px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:18px}
+@media (max-width:980px){aside.ctrl{border-right:0;border-bottom:1px solid var(--line)}}
+.grp h2{font-size:1.15rem;margin-bottom:10px}
+.field{margin-bottom:12px}
+.field label{display:flex;justify-content:space-between;align-items:baseline;font-weight:500;font-size:.93rem;margin-bottom:4px}
+.field .num{display:flex;align-items:center;gap:4px}
+.field .num input{width:70px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--soft);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent)}
+select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--soft)}
+.chk{display:flex;gap:8px;align-items:center;font-size:.93rem;margin:6px 0;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+.hint{font-size:.82rem;color:var(--muted);margin-top:4px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--soft);border-radius:8px;padding:8px 10px}
+.stat b{display:block;font-family:var(--cond);font-size:1.4rem;line-height:1}
+.stat span{font-size:.8rem;color:var(--muted)}
+
+.stage{display:flex;flex-direction:column;min-width:0}
+.vwrap{display:grid;grid-template-columns:260px 1fr 260px;min-height:520px;background:var(--viewer);border-bottom:1px solid var(--line)}
+.vwrap.no2d{grid-template-columns:1fr}
+.vwrap.no2d .side{display:none}
+@media (max-width:1250px){.vwrap{grid-template-columns:1fr}.vwrap .side{display:grid;grid-template-columns:1fr 1fr;gap:10px}.vwrap .side.left{order:2}.vwrap .side.right{order:3}}
+@media (max-width:620px){.vwrap .side{grid-template-columns:1fr}}
+.side{padding:10px;display:flex;flex-direction:column;gap:10px;background:var(--panel);overflow:auto}
+.side.left{border-right:1px solid var(--line)}
+.side.right{border-left:1px solid var(--line)}
+.view2d h3{font-size:.95rem;margin:0 0 4px;color:var(--muted);font-weight:500}
+.view2d svg{width:100%;height:auto;display:block;background:var(--soft);border-radius:6px}
+.legend2d{font-size:.78rem;color:var(--muted);display:grid;gap:3px}
+.legend2d i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+#viewer{position:relative;min-height:520px;touch-action:none;cursor:grab}
+#viewer canvas{display:block;width:100%;height:100%}
+.vhud{position:absolute;left:10px;bottom:10px;font-size:.78rem;color:var(--muted);background:color-mix(in srgb,var(--panel) 85%,transparent);padding:6px 9px;border-radius:6px;pointer-events:none;max-width:calc(100% - 20px)}
+.wlegend{position:absolute;right:10px;top:10px;font-size:.78rem;background:color-mix(in srgb,var(--panel) 88%,transparent);padding:7px 10px;border-radius:6px;display:grid;gap:2px;pointer-events:none}
+.wlegend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-right:6px;vertical-align:2px;border:1px solid rgba(0,0,0,.15)}
+
+.steps{padding:16px clamp(14px,3vw,28px) 22px;background:var(--panel)}
+.stepbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.stepbar button{border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:4px 11px;font-size:.85rem;cursor:pointer}
+.stepbar button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.stepbar button.done{border-color:var(--accent)}
+.stephead{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between}
+.stephead h2{font-size:1.7rem}
+.stephead h2 small{font-family:var(--sans);font-size:.9rem;color:var(--muted);font-weight:500;margin-right:8px}
+.nav{display:flex;gap:6px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--soft);padding:7px 13px;border-radius:7px;cursor:pointer;font-weight:500}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.danger{background:var(--fase);color:#fff;border-color:var(--fase)}
+.btn:disabled{opacity:.45;cursor:default}
+.prog{height:3px;background:var(--line);border-radius:2px;margin:12px 0 14px;overflow:hidden}
+.prog div{height:100%;background:var(--accent);width:0}
+.stepbody{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px}
+@media (max-width:860px){.stepbody{grid-template-columns:1fr}}
+.stepbody p{margin:0 0 10px;max-width:72ch}
+.stepbody ul{margin:0 0 10px;padding-left:20px}
+.stepbody li{margin-bottom:4px}
+.ric{font-size:.85rem;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px;margin-top:8px}
+.kv{width:100%;border-collapse:collapse;font-size:.9rem}
+.kv td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.kv td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+
+section.block{padding:30px clamp(14px,3vw,32px);border-top:1px solid var(--line)}
+section.block>h2{font-size:clamp(1.5rem,2.6vw,2rem);margin-bottom:6px}
+section.block>p.lead{color:var(--muted);margin:0 0 18px;max-width:75ch}
+.mats{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:1050px){.mats{grid-template-columns:1fr}}
+.tablewrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table.bom{width:100%;border-collapse:collapse;font-size:.9rem;min-width:620px}
+table.bom th{text-align:left;font-family:var(--cond);font-weight:600;font-size:1rem;padding:9px 10px;border-bottom:2px solid var(--line);background:var(--soft)}
+table.bom td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.bom tr.cat td{background:var(--soft);font-family:var(--cond);font-weight:600;font-size:1rem;color:var(--accent)}
+table.bom tr.item{cursor:pointer}
+table.bom tr.item:hover td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+table.bom tr.item.sel td{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+table.bom td.q{font-weight:600;white-space:nowrap;text-align:right}
+table.bom td.dim{white-space:nowrap;color:var(--muted)}
+.ref{font-size:.75rem;color:var(--warn);margin-left:4px}
+.mview{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;position:sticky;top:10px}
+.mview .hd{padding:12px 14px;border-bottom:1px solid var(--line)}
+.mview .hd h3{font-size:1.3rem}
+.mview .hd p{margin:2px 0 0;font-size:.88rem;color:var(--muted)}
+#matViewer{height:300px;background:var(--viewer);touch-action:none;cursor:grab;position:relative}
+.m2d{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px}
+.m2d.off{display:none}
+.m2d .view2d h3{font-size:.85rem}
+.mfoot{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted);gap:10px;flex-wrap:wrap}
+
+.guide{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.gcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.gcard h3{font-size:1.3rem;margin-bottom:8px}
+.gcard table{width:100%;border-collapse:collapse;font-size:.88rem}
+.gcard td{padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.gcard td:first-child{font-weight:600;width:36%}
+.gcard tr.now td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.gcard .tag{display:inline-block;font-size:.72rem;background:var(--accent);color:#fff;border-radius:4px;padding:0 5px;margin-left:4px;vertical-align:1px;font-weight:500}
+.gcard .ric{margin-top:10px}
+.checks{display:grid;gap:6px;font-size:.88rem}
+.checks div{display:grid;grid-template-columns:22px 1fr;gap:6px}
+.checks .y::before{content:"✓";color:var(--ok);font-weight:700}
+.checks .w::before{content:"!";color:var(--warn);font-weight:700;text-align:center}
+.checks .n::before{content:"–";color:var(--muted);text-align:center}
+footer{padding:22px clamp(14px,3vw,32px) 34px;font-size:.85rem;color:var(--muted);border-top:1px solid var(--line)}
+footer p{max-width:90ch;margin:0 0 6px}
+.cota line,.cota path{stroke:var(--accent)}
+.cota text{fill:var(--accent);font-family:var(--cond)}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wire" aria-hidden="true"></div>
+<header class="top">
+  <div>
+    <h1>Instalación eléctrica residencial en 3D</h1>
+    <p>Ajusta la vivienda y el tipo de muro; el modelo, el paso a paso, las cotas y la lista de materiales se recalculan según los extractos del RIC (DS N°8, SEC) del documento.</p>
+  </div>
+  <div class="src">Basado en «Instalaciones Eléctricas Residenciales», Legrand Bticino Academy Chile (2023). Cálculos estimativos para estudio; el proyecto real lo firma un instalador autorizado SEC.</div>
+</header>
+
+<div class="work">
+  <aside class="ctrl" aria-label="Parámetros de la vivienda">
+    <div class="grp">
+      <h2>Dimensiones</h2>
+      <div class="field"><label for="L">Largo (eje X) <span class="num"><input type="number" id="Ln" min="6" max="20" step="0.1"> m</span></label><input type="range" id="L" min="6" max="20" step="0.1"></div>
+      <div class="field"><label for="W">Ancho (eje Z) <span class="num"><input type="number" id="Wn" min="5" max="14" step="0.1"> m</span></label><input type="range" id="W" min="5" max="14" step="0.1"></div>
+      <div class="field"><label for="H">Alto de piso a cielo <span class="num"><input type="number" id="Hn" min="2.3" max="3.5" step="0.05"> m</span></label><input type="range" id="H" min="2.3" max="3.5" step="0.05"></div>
+    </div>
+    <div class="grp">
+      <h2>Materiales</h2>
+      <div class="field"><label for="mat">Tipo de muro</label>
+        <select id="mat">
+          <option value="tabique">Tabiquería (volcanita / madera)</option>
+          <option value="albanileria">Albañilería (ladrillo)</option>
+          <option value="hormigon">Hormigón armado</option>
+        </select>
+        <div class="hint" id="matHint"></div>
+      </div>
+      <div class="field"><label for="fin">Terminación de placas</label>
+        <select id="fin">
+          <option value="blanco">Blanco</option><option value="perla">Perla</option><option value="alu">Aluminio natural</option>
+          <option value="tit">Aluminio titanio</option><option value="terra">Terra</option><option value="black">Negro</option>
+        </select>
+      </div>
+      <label class="chk"><input type="checkbox" id="horno"> Horno / cocina eléctrica</label>
+    </div>
+    <div class="grp">
+      <h2>Vista</h2>
+      <label class="chk"><input type="checkbox" id="show2d" checked> Vistas 2D acotadas a los lados</label>
+      <label class="chk"><input type="checkbox" id="transp" checked> Muros transparentes</label>
+      <label class="chk"><input type="checkbox" id="techo"> Mostrar losa / cielo</label>
+      <label class="chk"><input type="checkbox" id="labels" checked> Nombres de recintos</label>
+    </div>
+    <div class="grp">
+      <h2>Resumen</h2>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="grp">
+      <h2>Cumplimiento RIC</h2>
+      <div class="checks" id="checks"></div>
+    </div>
+  </aside>
+
+  <div class="stage">
+    <div class="vwrap" id="vwrap">
+      <div class="side left">
+        <div class="view2d"><h3>Planta</h3><div id="svgPlanta"></div></div>
+        <div class="legend2d">
+          <span><i style="border:1.5px solid var(--ink);border-radius:50%"></i>Centro de iluminación</span>
+          <span><i style="background:var(--accent);border-radius:50%"></i>Interruptor (1,10 m)</span>
+          <span><i style="background:var(--fase)"></i>Enchufe</span>
+          <span><i style="background:var(--ink)"></i>Tablero / medidor</span>
+        </div>
+      </div>
+      <div id="viewer" role="img" aria-label="Modelo 3D de la vivienda con su instalación eléctrica">
+        <div class="wlegend" aria-hidden="true">
+          <span><i style="background:#d62828"></i>Fase</span>
+          <span><i style="background:#1f5fd6"></i>Retorno</span>
+          <span><i style="background:#f4f4f4"></i>Neutro</span>
+          <span><i style="background:#2e9e44"></i>Tierra</span>
+        </div>
+        <div class="vhud">Arrastra para girar · rueda o pellizco para acercar · clic derecho o Shift + arrastre para desplazar · accesorios a escala ×1,5</div>
+      </div>
+      <div class="side right">
+        <div class="view2d"><h3>Elevación frontal (acceso)</h3><div id="svgFrente"></div></div>
+        <div class="view2d"><h3>Elevación lateral</h3><div id="svgLado"></div></div>
+      </div>
+    </div>
+
+    <div class="steps" aria-live="polite">
+      <div class="stepbar" id="stepbar"></div>
+      <div class="stephead">
+        <h2 id="stepTitle"></h2>
+        <div class="nav">
+          <button class="btn" id="prev">Anterior</button>
+          <button class="btn pri" id="play">Reproducir</button>
+          <button class="btn" id="next">Siguiente</button>
+          <button class="btn" id="all">Ver instalación completa</button>
+        </div>
+      </div>
+      <div class="prog"><div id="progbar"></div></div>
+      <div class="stepbody"><div id="stepText"></div><div id="stepData"></div></div>
+    </div>
+  </div>
+</div>
+
+<section class="block" id="materiales">
+  <h2>Materiales y cantidades</h2>
+  <p class="lead">Cantidades calculadas para la vivienda configurada, con un trazado en estrella desde el tablero (estimación conservadora) y 10 % de pérdida en conductores y ductos. Selecciona una fila para ver el material en 3D y sus cotas.</p>
+  <div class="mats">
+    <div class="tablewrap"><table class="bom"><thead><tr><th>Material</th><th>Especificación / uso</th><th style="text-align:right">Cantidad</th><th>Dimensiones</th></tr></thead><tbody id="bom"></tbody></table></div>
+    <div class="mview">
+      <div class="hd"><h3 id="mTitle"></h3><p id="mSub"></p></div>
+      <div id="matViewer"></div>
+      <div class="m2d" id="m2d"></div>
+      <div class="mfoot"><label class="chk" style="margin:0"><input type="checkbox" id="m2dToggle" checked> Mostrar vistas 2D con cotas (mm)</label><span id="mNote"></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="guia">
+  <h2>Qué material usar y cuándo</h2>
+  <p class="lead">Lo marcado con «tu caso» corresponde a la configuración elegida arriba.</p>
+  <div class="guide" id="guide"></div>
+</section>
+
+<footer>
+  <p>Fuente principal: presentación «Instalaciones Eléctricas Residenciales», relator Manuel Parra V., Legrand Bticino Academy Chile, 2023, con extractos del Reglamento de Instalaciones de Consumo (RIC, DS N°8, vigente desde el 12 de julio de 2021) y la Ley 20.808 (norma técnica 766, Subtel).</p>
+  <p>Las dimensiones marcadas como «ref.» son referenciales (catálogo típico); las de cajas 503T/503L/503M provienen del documento. Secciones de conductor por circuito (1,5 y 2,5 mm²) y el electrodo de 5/8" × 1,5 m corresponden a práctica habitual y deben confirmarse en el proyecto (RIC N°03, N°04, N°06 y N°18).</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+const nf=(v,d=2)=>Number(v).toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d});
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------- Datos base ---------------- */
+const MATS={
+  tabique:{nombre:'Tabiquería (volcanita / madera)',esp:0.10,caja:'503T',cajaDim:[105,61,38],cajaColor:0xf07a2a,ducto:'corrugado',
+    hint:'Muro de 10 cm. Caja 503T (105×61×38 mm), de poca profundidad para tabiques delgados.'},
+  albanileria:{nombre:'Albañilería (ladrillo)',esp:0.15,caja:'503L',cajaDim:[106,71,52],cajaColor:0xf2c230,ducto:'pvc',
+    hint:'Muro de 15 cm. Caja 503L (106×71×52 mm) con grafetas metálicas para fijarla al muro.'},
+  hormigon:{nombre:'Hormigón armado',esp:0.20,caja:'503M',cajaDim:[106,71,52],cajaColor:0x2a2a2a,ducto:'pvc',
+    hint:'Muro de 20 cm. Caja 503M (106×71×52 mm) con relleno de poliestireno y bordes que se amarran a la enfierradura.'}
+};
+const FINISH={blanco:0xf7f7f5,perla:0xeee4cf,alu:0xc9c7c0,tit:0x7d7f82,terra:0x8b7765,black:0x2a2a2c};
+const COL={F:0xd62828,R:0x1f5fd6,R2:0x222222,N:0xf4f4f4,T:0x2e9e44};
+const COLN={F:'rojo (fase)',R:'azul (retorno)',R2:'negro (retorno 2)',N:'blanco (neutro)',T:'verde (tierra)'};
+const ACC=1.5; // escala visual de accesorios
+
+const S={L:10,W:7,H:2.4,mat:'albanileria',fin:'blanco',horno:false,show2d:true,transp:true,techo:false,labels:true};
+
+/* ---------------- Cálculo ---------------- */
+let D=null;
+function compute(){
+  const L=S.L,W=S.W,H=S.H,M=MATS[S.mat],t=M.esp;
+  const xa=L*0.55, zb=W*0.55, xc=L*0.8;
+  const rooms=[
+    {id:'living',nombre:'Living-comedor',tipo:'estar',x0:0,x1:xa,z0:0,z1:W},
+    {id:'dorm',nombre:'Dormitorio',tipo:'estar',x0:xa,x1:L,z0:0,z1:zb},
+    {id:'cocina',nombre:'Cocina',tipo:'cocina',x0:xa,x1:xc,z0:zb,z1:W},
+    {id:'bano',nombre:'Baño',tipo:'bano',x0:xc,x1:L,z0:zb,z1:W}];
+  const doors=[
+    {id:'front',room:'living',axis:'x',pos:0,c:xa*0.62,w:0.95},
+    {id:'dorm',room:'dorm',axis:'z',pos:xa,c:zb*0.4,w:0.8},
+    {id:'cocina',room:'cocina',axis:'z',pos:xa,c:(zb+W)/2,w:0.8},
+    {id:'bano',room:'bano',axis:'x',pos:zb,c:(xc+L)/2,w:0.7}];
+  rooms.forEach(r=>{r.w=r.x1-r.x0;r.d=r.z1-r.z0;r.area=r.w*r.d;r.per=2*(r.w+r.d);r.cx=(r.x0+r.x1)/2;r.cz=(r.z0+r.z1)/2;});
+
+  // Muros con vanos
+  const walls=[
+    {axis:'x',pos:0,a0:-t/2,a1:L+t/2},{axis:'x',pos:W,a0:-t/2,a1:L+t/2},
+    {axis:'z',pos:0,a0:t/2,a1:W-t/2},{axis:'z',pos:L,a0:t/2,a1:W-t/2},
+    {axis:'z',pos:xa,a0:t/2,a1:W-t/2},{axis:'x',pos:zb,a0:xa+t/2,a1:L-t/2},{axis:'z',pos:xc,a0:zb+t/2,a1:W-t/2}];
+  const segs=[];
+  walls.forEach(w=>{
+    const ds=doors.filter(d=>d.axis===w.axis&&Math.abs(d.pos-w.pos)<1e-6&&d.c>w.a0&&d.c<w.a1).sort((a,b)=>a.c-b.c);
+    let a=w.a0;
+    ds.forEach(d=>{const g0=d.c-d.w/2,g1=d.c+d.w/2; if(g0>a) segs.push({axis:w.axis,pos:w.pos,a0:a,a1:g0,y0:0,y1:H}); if(H>2.05) segs.push({axis:w.axis,pos:w.pos,a0:g0,a1:g1,y0:2.0,y1:H,lintel:true}); a=g1;});
+    if(w.a1>a) segs.push({axis:w.axis,pos:w.pos,a0:a,a1:w.a1,y0:0,y1:H});
+  });
+
+  // Ubicaciones
+  const front=doors[0];
+  const tx=Math.max(1.05,front.c-front.w/2-0.55);
+  const mx=tx-0.7;
+  const tab={x:tx,y:1.5,z:t/2+0.06};
+  const med={x:mx,y:1.4,z:-t/2-0.08};
+  const elec={x:mx,z:-1.0};
+
+  const sideKey=(r,side)=>side==='z0'?'x@'+r.z0:side==='z1'?'x@'+r.z1:side==='x0'?'z@'+r.x0:'z@'+r.x1;
+  const sideRange=(r,side)=>(side==='z0'||side==='z1')?[r.x0,r.x1]:[r.z0,r.z1];
+  const obst=[];
+  doors.forEach(d=>obst.push({key:d.axis+'@'+d.pos,c:d.c,half:d.w/2+0.3}));
+  obst.push({key:'x@0',c:tx,half:0.4});
+  function wallPos(r,side,c,y){
+    const o=t/2+0.004;
+    if(side==='z0') return {p:V(c,y,r.z0+o),n:V(0,0,1)};
+    if(side==='z1') return {p:V(c,y,r.z1-o),n:V(0,0,-1)};
+    if(side==='x0') return {p:V(r.x0+o,y,c),n:V(1,0,0)};
+    return {p:V(r.x1-o,y,c),n:V(-1,0,0)};
+  }
+  function perim(r,s){
+    s=((s%r.per)+r.per)%r.per;
+    if(s<r.w) return {side:'z0',c:r.x0+s}; s-=r.w;
+    if(s<r.d) return {side:'x1',c:r.z0+s}; s-=r.d;
+    if(s<r.w) return {side:'z1',c:r.x1-s}; s-=r.w;
+    return {side:'x0',c:r.z1-s};
+  }
+  function avoid(r,side,c){
+    const [a,b]=sideRange(r,side),key=sideKey(r,side);
+    for(let it=0;it<5;it++){
+      let moved=false;
+      for(const o of obst){ if(o.key!==key) continue; if(Math.abs(c-o.c)<o.half){ const up=o.c+o.half+0.05,dn=o.c-o.half-0.05; c=((c>=o.c&&up<=b-0.2)||dn<a+0.2)?up:dn; moved=true; } }
+      if(!moved) break;
+    }
+    return clamp(c,a+0.2,b-0.2);
+  }
+  // centros e interruptores
+  rooms.forEach(r=>{
+    r.nC=r.area<=10?1:2;
+    r.centros=r.nC===1?[V(r.cx,H,r.cz)]:(r.w>=r.d?[V(r.x0+r.w/4,H,r.cz),V(r.x0+3*r.w/4,H,r.cz)]:[V(r.cx,H,r.z0+r.d/4),V(r.cx,H,r.z0+3*r.d/4)]);
+    const d=doors.find(x=>x.room===r.id);
+    const side=d.axis==='x'?(Math.abs(d.pos-r.z0)<1e-6?'z0':'z1'):(Math.abs(d.pos-r.x0)<1e-6?'x0':'x1');
+    const [a,b]=sideRange(r,side);
+    let c=d.c+d.w/2+0.22; if(c>b-0.15) c=d.c-d.w/2-0.22;
+    r.sw=Object.assign(wallPos(r,side,c,1.10),{side,c,tipo:r.nC===1?'9/12 (simple)':'9/15 (doble)'});
+    obst.push({key:sideKey(r,side),c,half:0.22});
+  });
+  // enchufes
+  rooms.forEach(r=>{
+    let n,y,tipo;
+    if(r.tipo==='estar'){n=Math.ceil(r.per/8-1e-9);y=0.30;tipo='t10';}
+    else if(r.tipo==='cocina'){n=3;y=1.10;tipo='d16';}
+    else {n=1;y=1.10;tipo='s10';}
+    r.enchufes=[];
+    for(let k=0;k<n;k++){
+      const s=r.tipo==='bano'?r.w+r.d*0.5:(k+0.5)*r.per/n+0.3;
+      const pp=perim(r,s); const c=avoid(r,pp.side,pp.c);
+      r.enchufes.push(Object.assign(wallPos(r,pp.side,c,y),{side:pp.side,c,tipo}));
+      obst.push({key:sideKey(r,pp.side),c,half:0.3});
+    }
+    if(r.tipo==='cocina'&&S.horno){
+      const pp=perim(r,r.per/3+0.15); const c=avoid(r,pp.side,pp.c);
+      r.horno=Object.assign(wallPos(r,pp.side,c,0.60),{side:pp.side,c,tipo:'h16'});
+      obst.push({key:sideKey(r,pp.side),c,half:0.3});
+    }
+  });
+
+  // Circuitos
+  const circuits=[];
+  const cAl={id:'C1',nombre:'Alumbrado',In:10,curva:'C10',sec:1.5,pts:0,W:0};
+  circuits.push(cAl);
+  const gen=[]; rooms.filter(r=>r.id!=='cocina').forEach(r=>r.enchufes.forEach(e=>gen.push(e)));
+  const nGen=Math.max(1,Math.ceil(gen.length/14));
+  const genC=[];
+  for(let i=0;i<nGen;i++){const c={id:'C'+(circuits.length+1),nombre:nGen>1?'Enchufes generales '+(i+1):'Enchufes generales',In:16,curva:'C16',sec:2.5,pts:0,W:0};circuits.push(c);genC.push(c);}
+  const cCoc={id:'C'+(circuits.length+1),nombre:'Enchufes cocina (exclusivo)',In:16,curva:'C16',sec:2.5,pts:0,W:0}; circuits.push(cCoc);
+  let cHor=null; if(S.horno){cHor={id:'C'+(circuits.length+1),nombre:'Horno / cocina eléctrica',In:16,curva:'C16',sec:2.5,pts:0,W:0};circuits.push(cHor);}
+
+  // Rutas
+  const ceilY=H-0.08;
+  const homes=[];
+  const intoWall=(wp)=>wp.p.clone().addScaledVector(wp.n,-(t/2));
+  let genIdx=0;
+  rooms.forEach(r=>{
+    r.c0=V(r.centros[0].x,ceilY,r.centros[0].z);
+    homes.push({circ:cAl,tgt:r.c0,wall:false,room:r,kind:'al'});
+    cAl.pts+=r.nC; cAl.W+=100*r.nC;
+    r.chunks=[];
+    const k=Math.ceil(r.enchufes.length/3);
+    for(let j=0;j<k;j++){
+      const items=r.enchufes.slice(j*3,j*3+3);
+      const bp=V(r.cx+r.w*0.25-0.4*j,ceilY,r.cz+r.d*0.25);
+      let circ;
+      if(r.tipo==='cocina') circ=cCoc; else {circ=genC[Math.min(genC.length-1,Math.floor(genIdx/14))]; genIdx+=items.length;}
+      circ.pts+=items.length; circ.W+=250*items.length;
+      const ch={pos:bp,items,circ}; r.chunks.push(ch);
+      homes.push({circ,tgt:bp,wall:false,room:r,kind:'ch',chunk:ch});
+    }
+    if(r.horno){ homes.push({circ:cHor,tgt:intoWall(r.horno),wall:true,room:r,kind:'ho'}); cHor.pts=1; cHor.W=Math.max(1500,cHor.W); }
+  });
+  const dedupe=pts=>pts.filter((p,i)=>i===0||p.distanceTo(pts[i-1])>1e-4);
+  const runs=[];
+  const nH=homes.length;
+  homes.forEach((h,i)=>{
+    const ex=tab.x-0.13+(nH>1?0.26*i/(nH-1):0.13);
+    const p=[V(ex,tab.y+0.14,tab.z),V(ex,ceilY,tab.z),V(ex,ceilY,h.tgt.z),V(h.tgt.x,ceilY,h.tgt.z)];
+    if(h.wall) p.push(V(h.tgt.x,h.tgt.y+0.07,h.tgt.z));
+    runs.push({pts:dedupe(p),cond:['F','N','T'],sec:h.circ.sec,duct:20,circ:h.circ,kind:'home'});
+  });
+  function branch(from,tgt,wall){const p=[from.clone(),V(tgt.x,ceilY,from.z),V(tgt.x,ceilY,tgt.z)]; if(wall) p.push(V(tgt.x,tgt.y+0.07,tgt.z)); return dedupe(p);}
+  rooms.forEach(r=>{
+    runs.push({pts:branch(r.c0,intoWall(r.sw),true),cond:r.nC===2?['F','R','R2']:['F','R'],sec:1.5,duct:16,circ:cAl,kind:'sw'});
+    if(r.nC===2) runs.push({pts:branch(r.c0,V(r.centros[1].x,ceilY,r.centros[1].z),false),cond:['R2','N','T'],sec:1.5,duct:16,circ:cAl,kind:'c1'});
+    r.chunks.forEach(ch=>ch.items.forEach(e=>runs.push({pts:branch(ch.pos,intoWall(e),true),cond:['F','N','T'],sec:2.5,duct:20,circ:ch.circ,kind:'out'})));
+  });
+  const alim={pts:[V(mx,med.y,-t/2-0.01),V(mx,med.y,0),V(tx-0.2,med.y,0),V(tx-0.2,med.y,tab.z)],cond:['F','N'],sec:4,duct:20,kind:'alim'};
+  const tierra={pts:[V(elec.x,0.06,elec.z),V(elec.x,0.06,0),V(elec.x,1.25,0),V(tx-0.2,1.25,0),V(tx-0.2,1.25,tab.z)],cond:['T'],sec:6,duct:0,kind:'tierra'};
+  const plen=pts=>{let s=0;for(let i=1;i<pts.length;i++) s+=pts[i].distanceTo(pts[i-1]);return s;};
+  [...runs,alim,tierra].forEach(r=>r.len=plen(r.pts));
+
+  // Totales
+  const cond={}; // sec -> color -> m
+  const addC=(sec,col,m)=>{cond[sec]=cond[sec]||{};cond[sec][col]=(cond[sec][col]||0)+m;};
+  [...runs,alim].forEach(r=>r.cond.forEach(c=>addC(r.sec,c,r.len+0.3)));
+  addC(6,'T',tierra.len+0.5);
+  Object.keys(cond).forEach(s=>Object.keys(cond[s]).forEach(c=>cond[s][c]*=1.1));
+  const duct={16:0,20:0}; [...runs,alim].forEach(r=>{if(r.duct) duct[r.duct]+=r.len*1.1;});
+
+  const nCentros=rooms.reduce((a,r)=>a+r.nC,0);
+  const nOut=rooms.reduce((a,r)=>a+r.enchufes.length,0)+(S.horno?1:0);
+  const nChunks=rooms.reduce((a,r)=>a+r.chunks.length,0);
+  const nSw=rooms.length;
+  const nCirc=circuits.length;
+  const mods=[{p:2,v:'tm',l:'General 2P'},{p:2,v:'lim',l:'Limitador'},{p:1,v:'pil',l:'Luz piloto'}];
+  circuits.forEach(c=>{mods.push({p:2,v:'dif',l:'Dif. '+c.id});mods.push({p:1,v:'tm',l:c.curva+' '+c.id});});
+  const nMods=mods.reduce((a,m)=>a+m.p,0);
+  const cap=[8,12,18,24,36].find(c=>c>=nMods)||36;
+  const tabDim={8:[220,260,95],12:[300,260,95],18:[400,260,95],24:[300,470,95],36:[400,470,95]}[cap];
+  // conductores máximos por caja de derivación
+  let maxBox=0; rooms.forEach(r=>{maxBox=Math.max(maxBox,3+(r.nC===2?3:2)+(r.nC===2?3:0)); r.chunks.forEach(ch=>maxBox=Math.max(maxBox,3+3*ch.items.length));});
+
+  return {L,W,H,t,M,xa,zb,xc,rooms,doors,segs,tab,med,elec,runs,alim,tierra,circuits,cond,duct,nCentros,nOut,nChunks,nSw,nCirc,mods,nMods,cap,tabDim,ceilY,maxBox,cHor,cCoc,genC};
+}
+
+/* ---------------- Three.js base ---------------- */
+function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+class Orbit{
+  constructor(cam,el){
+    this.cam=cam;this.el=el;this.theta=-0.8;this.phi=1.0;this.r=15;this.target=V(0,0,0);this.goal=null;this.minR=0.05;this.maxR=90;this.ptr=new Map();this.pinch=null;
+    el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);this.ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,b:e.button,sh:e.shiftKey});this.goal=null;this.pinch=null;el.style.cursor='grabbing';});
+    el.addEventListener('pointermove',e=>{
+      const p=this.ptr.get(e.pointerId); if(!p) return;
+      const dx=e.clientX-p.x,dy=e.clientY-p.y; p.x=e.clientX;p.y=e.clientY;
+      if(this.ptr.size===2){const a=[...this.ptr.values()];const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);if(this.pinch) this.r=clamp(this.r*this.pinch/d,this.minR,this.maxR);this.pinch=d;return;}
+      if(p.b===2||p.b===1||p.sh) this.pan(dx,dy); else {this.theta-=dx*0.006;this.phi=clamp(this.phi-dy*0.006,0.06,Math.PI-0.06);}
+    });
+    const up=e=>{this.ptr.delete(e.pointerId);this.pinch=null;el.style.cursor='grab';};
+    el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+    el.addEventListener('wheel',e=>{e.preventDefault();this.goal=null;this.r=clamp(this.r*Math.exp(e.deltaY*0.0012),this.minR,this.maxR);},{passive:false});
+    el.addEventListener('contextmenu',e=>e.preventDefault());
+  }
+  pan(dx,dy){const s=this.r*0.0016;const rt=V(0,0,0).setFromMatrixColumn(this.cam.matrix,0);const up=V(0,0,0).setFromMatrixColumn(this.cam.matrix,1);this.target.addScaledVector(rt,-dx*s).addScaledVector(up,dy*s);}
+  flyTo(g,instant){ if(instant||reduceMotion){this.theta=g.theta;this.phi=g.phi;this.r=g.r;this.target.copy(g.target);this.goal=null;} else this.goal={theta:g.theta,phi:g.phi,r:g.r,target:g.target.clone()}; }
+  update(fdt){
+    if(this.goal){const k=1-Math.exp(-(fdt||0.016)*4.5);let dt=this.goal.theta-this.theta;dt=Math.atan2(Math.sin(dt),Math.cos(dt));this.theta+=dt*k;this.phi+=(this.goal.phi-this.phi)*k;this.r+=(this.goal.r-this.r)*k;this.target.lerp(this.goal.target,k);
+      if(Math.abs(dt)<1e-3&&Math.abs(this.goal.r-this.r)<1e-3&&this.target.distanceTo(this.goal.target)<1e-3) this.goal=null;}
+    const sp=Math.sin(this.phi);
+    this.cam.position.set(this.target.x+this.r*sp*Math.sin(this.theta),this.target.y+this.r*Math.cos(this.phi),this.target.z+this.r*sp*Math.cos(this.theta));
+    this.cam.lookAt(this.target);
+  }
+}
+function makeViewer(el,fov){
+  const renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  el.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();
+  const cam=new THREE.PerspectiveCamera(fov,1,0.01,300);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x8a8f96,0.75));
+  const dl=new THREE.DirectionalLight(0xffffff,0.75);dl.position.set(8,14,6);scene.add(dl);
+  const dl2=new THREE.DirectionalLight(0xffffff,0.25);dl2.position.set(-6,5,-8);scene.add(dl2);
+  const orbit=new Orbit(cam,renderer.domElement);
+  const resize=()=>{const w=el.clientWidth||300,h=el.clientHeight||300;renderer.setSize(w,h,false);renderer.domElement.style.width='100%';renderer.domElement.style.height='100%';cam.aspect=w/h;cam.updateProjectionMatrix();};
+  new ResizeObserver(resize).observe(el); resize();
+  return {renderer,scene,cam,orbit,resize};
+}
+const main=makeViewer($('#viewer'),45);
+const mv=makeViewer($('#matViewer'),35);
+function applyBg(){const c=new THREE.Color(cssVar('--viewer')||'#e3e8ee');main.scene.background=c;mv.scene.background=c.clone();}
+applyBg(); window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{applyBg();draw2D();selectItem(selId);});
+
+/* ---------------- Texturas ---------------- */
+function canvasTex(draw){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');draw(g,256);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t;}
+let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+const TEX={
+  albanileria:canvasTex((g,s)=>{g.fillStyle='#cfc6b6';g.fillRect(0,0,s,s);const bw=s/4,bh=s/12;for(let r=0;r<12;r++){const off=(r%2)*bw/2;for(let x=-bw;x<s+bw;x+=bw){const k=0.85+rnd()*0.25;g.fillStyle=`rgb(${(176*k)|0},${(84*k)|0},${(58*k)|0})`;g.fillRect(x+off+2,r*bh+2,bw-4,bh-3.5);}}}),
+  hormigon:canvasTex((g,s)=>{g.fillStyle='#a3a39e';g.fillRect(0,0,s,s);for(let i=0;i<2600;i++){const v=140+rnd()*50|0;g.fillStyle=`rgba(${v},${v},${v-4},0.35)`;g.fillRect(rnd()*s,rnd()*s,1+rnd()*2,1+rnd()*2);}g.strokeStyle='rgba(80,80,80,.25)';g.lineWidth=1;g.beginPath();g.moveTo(0,s/2);g.lineTo(s,s/2);g.stroke();for(let i=0;i<14;i++){g.fillStyle='rgba(60,60,60,.35)';g.beginPath();g.arc(rnd()*s,rnd()*s,1.2,0,7);g.fill();}}),
+  tabique:canvasTex((g,s)=>{g.fillStyle='#ece8df';g.fillRect(0,0,s,s);g.strokeStyle='rgba(120,110,95,.25)';g.lineWidth=2;g.beginPath();g.moveTo(1,0);g.lineTo(1,s);g.stroke();g.fillStyle='rgba(120,110,95,.25)';for(let y=16;y<s;y+=40){g.fillRect(4,y,2,2);}})
+};
+function boxUV(geo,w,h,d){const uv=geo.attributes.uv;const dims=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]];for(let f=0;f<6;f++)for(let i=0;i<4;i++){const k=f*4+i;uv.setXY(k,uv.getX(k)*dims[f][0],uv.getY(k)*dims[f][1]);}uv.needsUpdate=true;}
+
+/* ---------------- Materiales three ---------------- */
+const keep=m=>{m.userData.keep=true;return m;};
+const mStd=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:0.6,metalness:0.02},o||{}));
+const MAT={
+  wire:{},
+  ductCorr:keep(mStd(0xe98a3a,{transparent:true,opacity:0.95,roughness:0.7})),
+  ductPvc:keep(mStd(0x8f9aa3,{transparent:true,opacity:0.95,roughness:0.5})),
+  copper:keep(mStd(0xc27a43,{metalness:0.8,roughness:0.35})),
+  wall:keep(mStd(0xffffff,{transparent:true,opacity:0.3,depthWrite:false,side:THREE.DoubleSide})),
+  floor:keep(mStd(0xd9ccb4,{roughness:0.9})),
+  ground:keep(mStd(0x8d9c86,{transparent:true,opacity:0.55,depthWrite:false,roughness:1})),
+  roof:keep(mStd(0xcfd6dc,{transparent:true,opacity:0.22,depthWrite:false})),
+  bulb:keep(mStd(0xfff4dc,{emissive:0xffc766,emissiveIntensity:0,roughness:0.3})),
+  dark:keep(mStd(0x2b2b2b,{roughness:0.5})),
+  greyM:keep(mStd(0xe6e6e3,{roughness:0.55})),
+  metal:keep(mStd(0xb8bcc2,{metalness:0.8,roughness:0.3})),
+  brass:keep(mStd(0xc9a24a,{metalness:0.8,roughness:0.3})),
+  blueBar:keep(mStd(0x2d6fd0,{roughness:0.45})),
+  pilot:keep(mStd(0xaa2222,{emissive:0xff2a2a,emissiveIntensity:0,roughness:0.3}))
+};
+Object.keys(COL).forEach(k=>MAT.wire[k]=keep(mStd(COL[k],{roughness:0.45})));
+const GEO={cyl:new THREE.CylinderGeometry(1,1,1,10),joint:new THREE.SphereGeometry(1,10,8),part:new THREE.SphereGeometry(0.022,8,6)};
+Object.values(GEO).forEach(g=>g.userData.keep=true);
+function dispose(g){g.traverse(o=>{if(o.geometry&&!o.geometry.userData.keep)o.geometry.dispose();if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(!m.userData.keep)m.dispose();});}});while(g.children.length)g.remove(g.children[0]);}
+const box=(w,h,d,m)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);
+const cylM=(r,h,m,s)=>new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,s||24),m);
+function faceZ(mesh){mesh.rotation.x=Math.PI/2;return mesh;}
+
+/* ---------------- Constructores de modelos (tamaño real, metros) ---------------- */
+function mkCaja(type,dims,openUp){
+  const [w,h,d]=dims.map(v=>v/1000),g=new THREE.Group(),th=0.0025;
+  const col=type==='503T'?0xf07a2a:type==='503L'?0xf2c230:type==='503M'?0x2a2a2a:0xa8a49a;
+  const m=mStd(col,{roughness:0.65});
+  const add=(o,x,y,z)=>{o.position.set(x,y,z);g.add(o);};
+  add(box(w,h,th,m),0,0,-d/2+th/2);
+  add(box(th,h,d,m),-w/2+th/2,0,0);add(box(th,h,d,m),w/2-th/2,0,0);
+  add(box(w,th,d,m),0,h/2-th/2,0);add(box(w,th,d,m),0,-h/2+th/2,0);
+  // troqueles
+  const ko=mStd(new THREE.Color(col).multiplyScalar(0.8).getHex());
+  [-1,0,1].forEach(i=>{const c=cylM(0.0095,0.001,ko,20);c.position.set(i*w*0.28,h/2+0.0003,0);g.add(c);const c2=c.clone();c2.position.y=-h/2-0.0003;g.add(c2);});
+  // tornillería de fijación del módulo
+  [-1,1].forEach(s=>{const e=box(0.008,0.012,0.004,MAT.metal);e.position.set(s*(w/2-0.004),0,d/2-0.004);g.add(e);});
+  if(type==='503T'){[-1,1].forEach(s=>{const e=box(0.012,0.02,0.002,MAT.metal);e.position.set(s*(w/2+0.006),0,d/2-0.002);g.add(e);});}
+  if(type==='503L'||type==='503M'){[-1,1].forEach(s=>{const e=box(0.0015,0.03,0.022,MAT.metal);e.position.set(s*(w/2+0.001),0,0);g.add(e);});}
+  if(type==='503M'){const f=box(w-2*th,h-2*th,d-th,mStd(0xf4f4f0,{roughness:1}));f.position.z=th/2;g.add(f);
+    [-1,1].forEach(s=>{const e=box(0.03,0.004,0.004,MAT.dark);e.position.set(s*(w/2+0.015),h/2-0.01,-d/4);g.add(e);const e2=e.clone();e2.position.y=-h/2+0.01;g.add(e2);});}
+  if(openUp) g.rotation.x=-Math.PI/2;
+  return g;
+}
+function mkDin(poles,variant){
+  const w=0.018*poles-0.0006,g=new THREE.Group();
+  const body=box(w,0.085,0.07,MAT.greyM);g.add(body);
+  const face=box(w,0.045,0.012,mStd(0xf4f4f2));face.position.z=0.041;g.add(face);
+  if(variant!=='pil'){const lv=box(Math.min(0.011,w*0.7),0.016,0.012,MAT.dark);lv.position.set(0,0.006,0.053);g.add(lv);g.userData.lever=lv;}
+  for(let i=0;i<poles;i++){const x=-w/2+0.009+i*0.018;[0.0425,-0.0425].forEach(y=>{const sc=cylM(0.0035,0.001,MAT.metal,12);sc.position.set(x,y+0.0003*Math.sign(y),0.018);g.add(sc);});}
+  const lab=box(w*0.8,0.008,0.001,mStd(variant==='dif'?0x2d6fd0:variant==='lim'?0x2e9e44:0x444444));lab.position.set(0,-0.03,0.0355);g.add(lab);
+  if(variant==='dif'){const b=faceZ(cylM(0.0035,0.004,mStd(0x2d6fd0)));b.position.set(w*0.28,-0.012,0.049);g.add(b);}
+  if(variant==='lim'){const wd=box(w*0.5,0.01,0.002,mStd(0x3fbf5f,{emissive:0x1f7f2f,emissiveIntensity:0.4}));wd.position.set(0,-0.012,0.048);g.add(wd);}
+  if(variant==='pil'){const l=faceZ(cylM(0.005,0.006,MAT.pilot));l.position.set(0,0.004,0.05);g.add(l);}
+  return g;
+}
+function mkTablero(cap,mods){
+  const g=new THREE.Group(),dims={8:[220,260,95],12:[300,260,95],18:[400,260,95],24:[300,470,95],36:[400,470,95]}[cap].map(v=>v/1000);
+  const [W,H,Dp]=dims;const rows=cap>18?2:1;const perRow=rows===2?cap/2:cap;
+  const body=box(W,H,Dp*0.65,mStd(0xf6f6f4,{roughness:0.5}));body.position.z=-Dp*0.175;g.add(body);
+  const inner=box(W*0.9,H*0.86,0.002,mStd(0x3a3f45));inner.position.z=Dp*0.15+0.001;g.add(inner);
+  const refs={levers:[],parts:[]};
+  let row=0,col=0;
+  mods.forEach(m=>{
+    if(col+m.p>perRow){row++;col=0;}
+    const d=mkDin(m.p,m.v);
+    const x0=-perRow*0.009;const rowY=rows===2?(row===0?H*0.22:-H*0.22):0;
+    d.position.set(x0+(col+m.p/2)*0.018,rowY,Dp*0.15-0.035);
+    g.add(d);refs.parts.push(d);if(m.v==='dif'&&d.userData.lever)refs.levers.push(d.userData.lever);
+    col+=m.p;
+  });
+  // rieles
+  for(let r=0;r<rows;r++){const rl=box(W*0.86,0.035,0.004,MAT.metal);rl.position.set(0,rows===2?(r===0?H*0.22:-H*0.22):0,Dp*0.15-0.07);g.add(rl);}
+  const door=box(W,H,0.004,mStd(0x9fb4c8,{transparent:true,opacity:0.18,depthWrite:false,roughness:0.1}));door.position.z=Dp*0.15+0.05;g.add(door);
+  g.userData.refs=refs;
+  return g;
+}
+function mkModulo(kind,fin){
+  // módulo 22×45 mm; frente en z=0
+  const g=new THREE.Group();
+  const bodyC=kind==='sw'||kind==='blank'?0x2b2b2b:0x2b2b2b;
+  const back=box(0.022,0.045,0.035,mStd(bodyC));back.position.z=-0.0175;g.add(back);
+  const frontCol=fin===0x2a2a2c||fin===0x7d7f82?0x333335:0xf7f7f5;
+  if(kind==='sw'){const rk=box(0.0205,0.0425,0.006,mStd(frontCol,{roughness:0.35}));rk.position.z=0.003;rk.rotation.x=0.06;g.add(rk);}
+  else if(kind==='blank'){const b=box(0.0205,0.0425,0.003,mStd(frontCol,{roughness:0.4}));b.position.z=0.0015;g.add(b);}
+  else {
+    const f=box(0.0205,0.0425,0.004,mStd(frontCol,{roughness:0.4}));f.position.z=0.002;g.add(f);
+    const r=kind==='d16'||kind==='h16'?0.0026:0.0021;
+    [0.011,0,-0.011].forEach(y=>{const h=faceZ(cylM(r,0.002,MAT.dark,12));h.position.set(0,y,0.0038);g.add(h);});
+  }
+  // bornes
+  [-0.006,0.006].forEach(x=>{const b=box(0.006,0.008,0.006,MAT.brass);b.position.set(x,-0.012,-0.033);g.add(b);});
+  return g;
+}
+function mkSchuko(fin){
+  const g=new THREE.Group();
+  const back=box(0.044,0.045,0.038,mStd(0x2b2b2b));back.position.z=-0.019;g.add(back);
+  const f=box(0.0425,0.0425,0.004,mStd(fin===0x2a2a2c?0x333335:0xf7f7f5));f.position.z=0.002;g.add(f);
+  const well=faceZ(cylM(0.0185,0.004,mStd(0xdedede)));well.position.z=0.0025;g.add(well);
+  [-0.0095,0.0095].forEach(x=>{const h=faceZ(cylM(0.0025,0.002,MAT.dark,12));h.position.set(x,0,0.0048);g.add(h);});
+  [-1,1].forEach(s=>{const c=box(0.006,0.004,0.002,MAT.metal);c.position.set(0,s*0.017,0.0048);g.add(c);});
+  return g;
+}
+function mkPlaca(slots,fin){
+  // slots: array de 3 elementos
+  const g=new THREE.Group();const pm=mStd(fin,{roughness:0.4,metalness:fin===0xc9c7c0||fin===0x7d7f82?0.4:0.05});
+  const W=0.128,H=0.082,wW=0.068,wH=0.047,th=0.008;
+  const top=box(W,(H-wH)/2,th,pm);top.position.set(0,(wH+(H-wH)/2)/2,th/2-0.002);g.add(top);
+  const bot=top.clone();bot.position.y=-top.position.y;g.add(bot);
+  const side=box((W-wW)/2,wH,th,pm);side.position.set((wW+(W-wW)/2)/2,0,th/2-0.002);g.add(side);
+  const s2=side.clone();s2.position.x=-side.position.x;g.add(s2);
+  const sup=box(0.11,0.072,0.004,mStd(0x5c6167));sup.position.z=-0.004;g.add(sup);
+  if(slots[0]==='sch'){const s=mkSchuko(fin);s.position.set(0.011,0,0.002);g.add(s);const b=mkModulo('blank',fin);b.position.set(-0.022,0,0.002);g.add(b);}
+  else slots.forEach((k,i)=>{const m=mkModulo(k,fin);m.position.set((i-1)*0.0225,0,0.002);g.add(m);});
+  return g;
+}
+function mkPortalampara(){
+  const g=new THREE.Group();
+  const ros=cylM(0.05,0.022,mStd(0xf5f5f2),40);ros.position.y=-0.011;g.add(ros);
+  const sock=cylM(0.019,0.04,mStd(0xf0f0ec),24);sock.position.y=-0.042;g.add(sock);
+  const thread=cylM(0.0135,0.006,MAT.metal,20);thread.position.y=-0.063;g.add(thread);
+  return g;
+}
+function mkMedidor(){
+  const g=new THREE.Group();
+  g.add(box(0.25,0.45,0.15,mStd(0xdad9d3,{roughness:0.7})));
+  const w=box(0.13,0.13,0.006,mStd(0x2a2f35,{roughness:0.2}));w.position.set(0,0.09,0.076);g.add(w);
+  const disp=box(0.06,0.02,0.002,mStd(0x9fd39a,{emissive:0x3f8f3a,emissiveIntensity:0.5}));disp.position.set(0,0.1,0.08);g.add(disp);
+  const h=box(0.06,0.03,0.02,mStd(0xbdbcb5));h.position.set(0,-0.14,0.08);g.add(h);
+  return g;
+}
+function mkBarra(){
+  const g=new THREE.Group();
+  const b=box(0.1,0.025,0.03,MAT.blueBar);g.add(b);
+  for(let i=0;i<6;i++){const s=cylM(0.0035,0.004,MAT.metal,12);s.position.set(-0.04+i*0.016,0.0145,0);g.add(s);}
+  const base=box(0.11,0.006,0.034,MAT.dark);base.position.y=-0.0155;g.add(base);
+  return g;
+}
+function mkBarraTierra(){
+  const g=new THREE.Group();
+  const r=cylM(0.008,1.5,MAT.copper,20);r.position.y=-0.75;g.add(r);
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(0.008,0.03,20),MAT.copper);tip.rotation.x=Math.PI;tip.position.y=-1.515;g.add(tip);
+  const cl=box(0.03,0.03,0.022,MAT.brass);cl.position.y=-0.03;g.add(cl);
+  const bolt=faceZ(cylM(0.004,0.03,MAT.metal,12));bolt.position.set(0,-0.03,0.015);g.add(bolt);
+  return g;
+}
+function mkCamarilla(){
+  const g=new THREE.Group();const m=mStd(0x9d9a92,{roughness:0.95});const w=0.2,h=0.25,th=0.018;
+  [[w,h,th,0,-h/2,w/2-th/2],[w,h,th,0,-h/2,-w/2+th/2],[th,h,w,w/2-th/2,-h/2,0],[th,h,w,-w/2+th/2,-h/2,0]].forEach(a=>{const b=box(a[0],a[1],a[2],m);b.position.set(a[3],a[4],a[5]);g.add(b);});
+  const lid=box(w-0.02,0.012,w-0.02,mStd(0x6c6a65));lid.position.set(0.03,0.02,0.02);lid.rotation.z=0.25;g.add(lid);
+  return g;
+}
+function mkDucto(dmm,kind,len){
+  const g=new THREE.Group();const R=dmm/2000;len=len||0.6;
+  if(kind==='corrugado'){
+    const m=MAT.ductCorr.clone();m.transparent=false;m.opacity=1;
+    const core=cylM(R*0.9,len,m,20);core.rotation.z=Math.PI/2;g.add(core);
+    const tg=new THREE.TorusGeometry(R*0.92,R*0.14,8,20);
+    for(let x=-len/2+0.004;x<len/2;x+=0.0065){const t=new THREE.Mesh(tg,m);t.rotation.y=Math.PI/2;t.position.x=x;g.add(t);}
+  } else {
+    const m=mStd(0x8f9aa3,{roughness:0.45,side:THREE.DoubleSide});
+    const tube=new THREE.Mesh(new THREE.CylinderGeometry(R,R,len,28,1,true),m);tube.rotation.z=Math.PI/2;g.add(tube);
+    const inner=new THREE.Mesh(new THREE.CylinderGeometry(R*0.85,R*0.85,len,28,1,true),mStd(0x5d666d,{side:THREE.DoubleSide}));inner.rotation.z=Math.PI/2;g.add(inner);
+  }
+  return g;
+}
+function mkCable(dmm,colors){
+  const g=new THREE.Group();const r=dmm/2000;
+  colors.forEach((c,i)=>{
+    const m=mStd(COL[c],{roughness:0.45});
+    for(let k=0;k<5;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(0.045,r,10,64),m);t.rotation.x=Math.PI/2;t.position.set(i*0.11,k*dmm/1000*1.05,0);g.add(t);}
+    const end=cylM(r,0.05,m,12);end.rotation.z=Math.PI/2;end.position.set(i*0.11+0.07,0,0);g.add(end);
+    const cu=cylM(r*0.55,0.015,MAT.copper,10);cu.rotation.z=Math.PI/2;cu.position.set(i*0.11+0.1,0,0);g.add(cu);
+  });
+  return g;
+}
+
+/* ---------------- Escena vivienda ---------------- */
+const house=new THREE.Group(),inst=new THREE.Group();main.scene.add(house,inst);
+let labelSprites=[];let anim=[],lamps=[],tabRefs=null,particles=null,flows=[],pLights=[];
+function makeLabel(t1,t2){
+  const c=document.createElement('canvas');c.width=512;c.height=150;const g=c.getContext('2d');
+  g.fillStyle='rgba(20,33,46,.78)';const r=24;g.beginPath();g.moveTo(r,0);g.arcTo(512,0,512,150,r);g.arcTo(512,150,0,150,r);g.arcTo(0,150,0,0,r);g.arcTo(0,0,512,0,r);g.fill();
+  g.fillStyle='#fff';g.textAlign='center';g.font='600 54px "Barlow Condensed", Arial Narrow, sans-serif';g.fillText(t1,256,66);
+  g.font='500 38px Barlow, Arial, sans-serif';g.fillStyle='#cfe0ff';g.fillText(t2,256,118);
+  const tx=new THREE.CanvasTexture(c);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,depthTest:false,transparent:true}));s.renderOrder=10;return s;
+}
+function buildHouse(){
+  dispose(house);labelSprites=[];
+  const d=D;
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(d.L,d.W),MAT.floor);floor.rotation.x=-Math.PI/2;floor.position.set(d.L/2,0.002,d.W/2);house.add(floor);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(80,80),MAT.ground);ground.rotation.x=-Math.PI/2;ground.position.set(d.L/2,-0.002,d.W/2);ground.renderOrder=-1;house.add(ground);
+  const grid=new THREE.GridHelper(40,40,0x7b8794,0x9aa5b1);grid.material.transparent=true;grid.material.opacity=0.25;grid.position.set(d.L/2,0.001,d.W/2);house.add(grid);
+  const tex=TEX[S.mat];MAT.wall.map=tex;MAT.wall.opacity=S.transp?0.24:1;MAT.wall.transparent=S.transp;MAT.wall.depthWrite=!S.transp;MAT.wall.needsUpdate=true;
+  d.segs.forEach(s=>{
+    const len=s.a1-s.a0,h=s.y1-s.y0,t=d.t;
+    let geo;
+    if(s.axis==='x'){geo=new THREE.BoxGeometry(len,h,t);boxUV(geo,len,h,t);}else{geo=new THREE.BoxGeometry(t,h,len);boxUV(geo,t,h,len);}
+    const m=new THREE.Mesh(geo,MAT.wall);
+    if(s.axis==='x') m.position.set((s.a0+s.a1)/2,(s.y0+s.y1)/2,s.pos); else m.position.set(s.pos,(s.y0+s.y1)/2,(s.a0+s.a1)/2);
+    house.add(m);
+  });
+  if(S.techo){const r=box(d.L+d.t,0.1,d.W+d.t,MAT.roof);r.position.set(d.L/2,d.H+0.05,d.W/2);house.add(r);}
+  if(S.labels) d.rooms.forEach(r=>{const s=makeLabel(r.nombre,nf(r.area,1)+' m²');s.scale.set(1.5,0.44,1);s.position.set(r.cx,0.35,r.cz);house.add(s);labelSprites.push(s);});
+}
+function reg(obj,step,delay){obj.userData.base=obj.scale.clone();obj.visible=false;anim.push({kind:'pop',obj,step,delay});inst.add(obj);return obj;}
+function regPath(pts,radius,mat,step,d0,span,joints){
+  const total=pts.reduce((a,p,i)=>i?a+p.distanceTo(pts[i-1]):0,0)||1;let acc=0;
+  for(let i=1;i<pts.length;i++){
+    const a=pts[i-1],b=pts[i],len=a.distanceTo(b);if(len<1e-4)continue;
+    const dir=b.clone().sub(a).normalize();
+    const m=new THREE.Mesh(GEO.cyl,mat);m.quaternion.setFromUnitVectors(V(0,1,0),dir);m.visible=false;inst.add(m);
+    anim.push({kind:'seg',obj:m,step,a:a.clone(),dir,len,r:radius,d0:d0+span*acc/total,d1:d0+span*(acc+len)/total});
+    acc+=len;
+    if(joints&&i<pts.length-1){const j=new THREE.Mesh(GEO.joint,mat);j.scale.setScalar(radius);j.position.copy(b);reg(j,step,d0+span*acc/total);}
+  }
+}
+const WOFF={F:V(0.009,0.009,-0.004),N:V(-0.009,0.004,0.009),T:V(0.003,-0.01,0.003),R:V(-0.004,-0.006,-0.01),R2:V(0.01,-0.003,0.009)};
+function placeWall(obj,wp,inset){obj.position.copy(wp.p).addScaledVector(wp.n,inset||0);obj.lookAt(obj.position.clone().add(wp.n));return obj;}
+
+function buildInstall(){
+  dispose(inst);anim=[];lamps=[];flows=[];pLights.forEach(l=>main.scene.remove(l));pLights=[];
+  const d=D,M=d.M,fin=FINISH[S.fin];
+  // Paso 0: empalme y medidor
+  const med=mkMedidor();med.position.set(d.med.x,d.med.y,d.med.z);med.rotation.y=Math.PI;reg(med,0,0);
+  regPath(d.alim.pts.map(p=>p.clone().add(WOFF.F)),0.007,MAT.wire.F,0,0.3,0.6);
+  regPath(d.alim.pts.map(p=>p.clone().add(WOFF.N)),0.007,MAT.wire.N,0,0.3,0.6);
+  // Paso 1: tierra
+  const rod=mkBarraTierra();rod.position.set(d.elec.x,0.04,d.elec.z);reg(rod,1,0);
+  const cam=mkCamarilla();cam.position.set(d.elec.x,0.04,d.elec.z);reg(cam,1,0.25);
+  regPath(d.tierra.pts,0.006,MAT.wire.T,1,0.4,0.6);
+  // Paso 2: tablero
+  const tb=mkTablero(d.cap,d.mods);tb.position.set(d.tab.x,d.tab.y,d.tab.z-0.01);
+  const partsT=tb.userData.refs.parts;tabRefs=tb.userData.refs;
+  partsT.forEach(p=>tb.remove(p));reg(tb,2,0);
+  partsT.forEach((p,i)=>{p.position.add(tb.position);reg(p,2,0.2+0.6*i/partsT.length);});
+  // Paso 3: ductos
+  const dm=M.ducto==='corrugado'?MAT.ductCorr:MAT.ductPvc;
+  d.runs.forEach((r,i)=>regPath(r.pts,r.duct===16?0.013:0.017,dm,3,0.7*i/d.runs.length,0.3,true));
+  // Paso 4: cajas
+  const cd=M.cajaDim,bi=0;
+  const wallBox=(wp,delay)=>{const c=mkCaja(M.caja,cd);const g=new THREE.Group();g.add(c);c.position.z=-cd[2]/2000;g.scale.setScalar(ACC);placeWall(g,wp,0);reg(g,4,delay);};
+  const ceilBox=(p,delay)=>{const c=mkCaja(M.caja,cd);const g=new THREE.Group();g.add(c);c.position.z=-cd[2]/2000;g.scale.setScalar(ACC);g.position.set(p.x,d.H-0.002,p.z);g.rotation.x=Math.PI/2;reg(g,4,delay);};
+  let k=0;const nb=d.nCentros+d.nChunks+d.nOut+d.nSw;const nx=()=>0.8*(k++)/nb;
+  d.rooms.forEach(r=>{
+    r.centros.forEach(c=>ceilBox(c,nx()));
+    r.chunks.forEach(ch=>ceilBox(ch.pos,nx()));
+    wallBox(r.sw,nx());
+    r.enchufes.forEach(e=>wallBox(e,nx()));
+    if(r.horno) wallBox(r.horno,nx());
+  });
+  // Paso 5: cableado
+  d.runs.forEach((r,i)=>{r.cond.forEach(c=>regPath(r.pts.map(p=>p.clone().add(WOFF[c])),0.0045,MAT.wire[c],5,0.6*i/d.runs.length,0.4));if(r.cond.includes('F'))flows.push(r);});
+  flows.push(d.alim);
+  // Paso 6: centros
+  let ci=0;
+  d.rooms.forEach(r=>r.centros.forEach(c=>{
+    const g=new THREE.Group();const pl=mkPortalampara();pl.scale.setScalar(ACC);g.add(pl);
+    const bulb=new THREE.Mesh(new THREE.SphereGeometry(0.06,20,14),MAT.bulb);bulb.position.y=-0.16;g.add(bulb);
+    g.position.set(c.x,d.H,c.z);reg(g,6,0.8*(ci++)/d.nCentros);
+    const pl2=new THREE.PointLight(0xffd9a0,0,6,2);pl2.position.set(c.x,d.H-0.3,c.z);main.scene.add(pl2);pLights.push(pl2);
+  }));
+  // Paso 7: interruptores
+  d.rooms.forEach((r,i)=>{const pl=mkPlaca(r.nC===1?['blank','sw','blank']:['sw','blank','sw'],fin);const g=new THREE.Group();g.add(pl);g.scale.setScalar(ACC);placeWall(g,r.sw,0.002);reg(g,7,0.15*i);});
+  // Paso 8: enchufes
+  let ei=0;
+  d.rooms.forEach(r=>{
+    r.enchufes.forEach(e=>{const slots=e.tipo==='t10'?['t10','t10','t10']:e.tipo==='d16'?['d16','blank','d16']:['blank','t10','blank'];const g=new THREE.Group();g.add(mkPlaca(slots,fin));g.scale.setScalar(ACC);placeWall(g,e,0.002);reg(g,8,0.8*(ei++)/d.nOut);});
+    if(r.horno){const g=new THREE.Group();g.add(mkPlaca(['sch'],fin));g.scale.setScalar(ACC);placeWall(g,r.horno,0.002);reg(g,8,0.8*(ei++)/d.nOut);}
+  });
+  // Partículas de corriente
+  flows.forEach(f=>{f.cum=[0];for(let i=1;i<f.pts.length;i++)f.cum.push(f.cum[i-1]+f.pts[i].distanceTo(f.pts[i-1]));});
+  const per=5;particles=new THREE.InstancedMesh(GEO.part,keep(new THREE.MeshBasicMaterial({color:0xffc233})),flows.length*per);particles.visible=false;particles.frustumCulled=false;inst.add(particles);
+}
+function pointAt(f,s){const c=f.cum;let i=1;while(i<c.length-1&&c[i]<s)i++;const a=f.pts[i-1],b=f.pts[i];const seg=c[i]-c[i-1]||1;return a.clone().lerp(b,clamp((s-c[i-1])/seg,0,1)).add(WOFF.F);}
+
+/* ---------------- Pasos ---------------- */
+const STEPS=[
+ {t:'Empalme y medidor',
+  txt:d=>`<p>La energía llega desde la red de distribución al <b>empalme</b>, donde está el medidor. Desde allí sale el <b>alimentador</b> (fase y neutro) hacia el tablero de la vivienda.</p><ul><li>La protección del empalme debe ser de al menos <b>25 A</b>.</li><li>El alimentador no puede tener sección inferior a <b>4 mm²</b>.</li><li>La tierra de servicio corresponde a poner a tierra el neutro del empalme.</li></ul>`,
+  ric:'RIC N°10, 5.2.1 · RIC N°06, 4.5.7',
+  data:d=>kv([['Protección del empalme','25 A mín.'],['Sección del alimentador','4 mm²'],['Largo del alimentador',nf(d.alim.len,2)+' m'],['Conductores','fase + neutro']])},
+ {t:'Sistema de puesta a tierra',
+  txt:d=>`<p>Se hinca el <b>electrodo</b> y se deja una camarilla de registro. El conductor verde lleva a tierra todas las partes metálicas que podrían quedar energizadas ante una falla (<b>tierra de protección</b>), ofreciendo un camino de baja impedancia a la corriente de falla.</p><p>Se puede usar electrodo simple, varios electrodos conectados, malla o placa, según la resistividad del terreno.</p>`,
+  ric:'RIC N°06, 4.5.1 y 4.5.6',
+  data:d=>kv([['Electrodo (ref.)','barra Cu 5/8" × 1,5 m'],['Profundidad','1,50 m'],['Conductor de tierra',nf(d.tierra.len*1.1,1)+' m'],['Color','verde']])},
+ {t:'Tablero de distribución',
+  txt:d=>`<p>El tablero se monta a <b>1,50 m</b>: los dispositivos de accionamiento deben quedar entre 0,45 m y 2,0 m del piso. Aparecen, en orden: interruptor general omnipolar, limitador de sobretensión, luz piloto y, por cada circuito, su <b>protector diferencial</b> y su <b>interruptor termomagnético</b>.</p><ul><li>El cableado interno usa barras de distribución: no se acepta conectar de dispositivo a dispositivo.</li><li>Termomagnético protege los bienes (cortocircuito y sobrecarga); diferencial protege a las personas (contacto directo o indirecto); limitador protege los equipos (sobretensiones).</li></ul>`,
+  ric:'RIC N°02, 4.18, 6.1.22, 6.2.4, 6.2.14 · RIC N°10, 5.1.3.3',
+  data:d=>kv([['Circuitos',d.nCirc],...d.circuits.map(c=>[c.id+' '+c.nombre,c.curva+' + dif. 30 mA']),['Módulos ocupados',d.nMods+' de '+d.cap],['Tablero (ref.)',d.tabDim.slice(0,2).join(' × ')+' mm']])},
+ {t:'Canalizaciones',
+  txt:d=>`<p>Se tienden los ductos desde el tablero hasta cada caja. ${d.M.ducto==='corrugado'?'En <b>tabiquería</b> se usa tubo corrugado flexible que corre por el interior del tabique, antes de cerrar con las placas.':S.mat==='hormigon'?'En <b>hormigón</b> los ductos y cajas se amarran a la enfierradura antes de hormigonar; después no se pueden mover.':'En <b>albañilería</b> el ducto se embute en canaletas en el muro o se deja en la losa y pilares.'}</p><p>Aquí se usan ductos de Ø20 mm para troncales y enchufes y Ø16 mm para bajadas de interruptores y centros.</p>`,
+  ric:'RIC N°10, 5.1.2.1 (sistemas del RIC N°04, sección 7)',
+  data:d=>kv([['Ducto Ø20 mm',nf(d.duct[20],1)+' m ('+Math.ceil(d.duct[20]/3)+' tiras de 3 m)'],['Ducto Ø16 mm',nf(d.duct[16],1)+' m ('+Math.ceil(d.duct[16]/3)+' tiras de 3 m)'],['Tipo',d.M.ducto==='corrugado'?'corrugado flexible':'PVC conduit']])},
+ {t:'Cajas de empotrar y de derivación',
+  txt:d=>`<p>Para <b>${d.M.nombre.toLowerCase()}</b> corresponde la caja <b>${d.M.caja}</b> (${d.M.cajaDim.join('×')} mm). Todas las uniones y derivaciones se hacen dentro de cajas; no se permite la alimentación «de centro a centro» sin caja de derivación.</p><ul><li>En cajas de hasta 400 cm³: máximo 12 conductores de hasta 8,37 mm² y no más de 5 entradas.</li><li>Está prohibido instalar módulos de interruptor o enchufe sin su caja.</li></ul>`,
+  ric:'RIC N°10, 5.1.2.2, 5.1.2.6, 5.1.2.14',
+  data:d=>kv([['Cajas de aparatos',d.nSw+d.nOut],['Cajas de derivación',d.nCentros+d.nChunks],['Volumen caja '+d.M.caja,nf(d.M.cajaDim.reduce((a,b)=>a*b,1)/1000,0)+' cm³'],['Máx. conductores en una caja',d.maxBox+' de 12']])},
+ {t:'Cableado fase, neutro y tierra',
+  txt:d=>`<p>Se pasan los conductores por los ductos: <b>fase</b> (rojo, azul o negro), <b>neutro</b> (blanco) y <b>tierra de protección</b> (verde). Los retornos de interruptor van en color de fase. Se dejan unos 15 cm de conductor dentro de cada caja para conectar con holgura.</p><p>Los conductores nunca sostienen lámparas: el soporte mecánico debe ser independiente.</p>`,
+  ric:'RIC N°10, 5.1.2.11 · colores según el documento',
+  data:d=>kv(Object.keys(d.cond).sort((a,b)=>a-b).map(s=>[s+' mm²',Object.keys(d.cond[s]).map(c=>COLN[c].split(' ')[0]+' '+nf(d.cond[s][c],0)+' m').join(' · ')]))},
+ {t:'Centros de iluminación',
+  txt:d=>`<p>Cada recinto de hasta 10 m² lleva al menos <b>un centro</b>; si supera 10 m², <b>dos centros</b>, cada uno con su propio interruptor. Ningún centro se alimenta desde un enchufe. Cada centro termina en una caja de derivación y lleva conductor de tierra.</p>`,
+  ric:'RIC N°10, 5.2.2 a), 5.1.2.12, 5.1.2.13, 5.1.4.5',
+  data:d=>kv(d.rooms.map(r=>[r.nombre+' ('+nf(r.area,1)+' m²)',r.nC+(r.nC===1?' centro':' centros')]).concat([['Potencia de cálculo',(d.nCentros*100)+' W (100 W c/u)']]))},
+ {t:'Interruptores',
+  txt:d=>`<p>Los interruptores se instalan junto a la puerta, del lado donde abre, entre <b>0,80 m y 1,40 m</b> (aquí a 1,10 m), en un lugar donde se vea su efecto. Al final del paso las luces se encienden para comprobar el comando.</p><ul><li>9/12: un centro · 9/15: dos centros · 9/32: tres centros.</li><li>9/24 (tres bornes): comando desde dos puntos, como en escaleras. Para más de dos puntos se agrega un interruptor multipunto.</li></ul>`,
+  ric:'RIC N°10, 5.1.2.4',
+  data:d=>kv(d.rooms.map(r=>[r.nombre,r.sw.tipo]))},
+ {t:'Enchufes',
+  txt:d=>`<p>Todos los enchufes llevan <b>alvéolos protegidos</b> y conductor de tierra. En dormitorios y living se pone al menos un enchufe doble o triple por cada <b>8 m de perímetro</b> o fracción; en cocina, al menos <b>tres</b> enchufes de 10/16 A en un circuito exclusivo.${S.horno?' El horno eléctrico tiene su propio circuito de 16 A mínimo y enchufe de al menos 1.500 W.':''}</p>`,
+  ric:'RIC N°10, 5.2.2 b) c), 5.1.2.7, 5.1.2.8, 5.1.4.6 · RIC N°11, 6.4.3 (baño)',
+  data:d=>kv(d.rooms.map(r=>[r.nombre+(r.tipo==='estar'?' ('+nf(r.per,1)+' m perím.)':''),r.enchufes.length+' × '+({t10:'triple 10 A',d16:'doble 10/16 A',s10:'simple 10 A'})[r.enchufes[0].tipo]+(r.horno?' + 1 horno 16 A':'')]))},
+ {t:'Protecciones y puesta en servicio',
+  txt:d=>`<p>Con todo conectado se energiza la instalación: la corriente (puntos amarillos) recorre las fases. Todos los circuitos quedan protegidos por diferencial y termomagnético. Prueba el <b>diferencial</b>: simula una falla a tierra y observa cómo corta los circuitos; la luz piloto sigue encendida porque indica que hay energía en la entrada del tablero.</p><p><button class="btn danger" id="trip">Simular falla a tierra</button> <button class="btn" id="reset">Rearmar diferenciales</button></p><p id="tripMsg"></p>`,
+  ric:'RIC N°10, 5.2.1 c) · RIC N°17 (operación y mantenimiento) · RIC N°19 (puesta en servicio)',
+  data:d=>kv(d.circuits.map(c=>[c.id+' '+c.nombre,c.pts+' pts · '+nf(c.W,0)+' W / '+nf(c.In*220,0)+' W']))}
+];
+function kv(rows){return '<table class="kv">'+rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')+'</table>';}
+let cur=0,stepP=0,playing=false,holdT=0,tripped=false;
+const STEP_DUR=2.8;
+function renderStepbar(){
+  $('#stepbar').innerHTML=STEPS.map((s,i)=>`<button data-i="${i}" class="${i===cur?'on':i<cur?'done':''}" aria-current="${i===cur?'step':'false'}">${i+1}. ${s.t}</button>`).join('');
+}
+function renderStep(){
+  const s=STEPS[cur];
+  $('#stepTitle').innerHTML=`<small>Paso ${cur+1} de ${STEPS.length}</small>${s.t}`;
+  $('#stepText').innerHTML=s.txt(D)+`<div class="ric">${s.ric}</div>`;
+  $('#stepData').innerHTML=s.data(D);
+  $('#prev').disabled=cur===0;$('#next').disabled=cur===STEPS.length-1;
+  renderStepbar();
+  const tr=$('#trip');if(tr){tr.onclick=()=>{tripped=true;$('#tripMsg').textContent='El diferencial detectó la corriente de fuga (umbral 30 mA) y abrió fase y neutro de los circuitos. Luces y enchufes quedan sin energía.';};$('#reset').onclick=()=>{tripped=false;$('#tripMsg').textContent='Diferenciales rearmados: la instalación vuelve a funcionar.';};}
+}
+function camFor(i){
+  const d=D;const ov={theta:-0.72,phi:0.95,r:Math.max(d.L,d.W)*1.35+2.5,target:V(d.L/2,d.H*0.3,d.W/2)};
+  if(i===0) return {theta:Math.PI+0.6,phi:1.25,r:3.4,target:V(d.med.x+0.3,1.2,d.med.z)};
+  if(i===1) return {theta:Math.PI+0.75,phi:1.42,r:4.2,target:V(d.elec.x,-0.35,d.elec.z)};
+  if(i===2) return {theta:0.3,phi:1.35,r:1.9,target:V(d.tab.x,d.tab.y,d.tab.z)};
+  return ov;
+}
+function goStep(i,keepPlay){cur=clamp(i,0,STEPS.length-1);stepP=reduceMotion?1:0;holdT=0;tripped=false;if(!keepPlay)playing=false;updPlay();main.orbit.flyTo(camFor(cur));renderStep();}
+function updPlay(){$('#play').textContent=playing?'Pausar':'Reproducir';}
+$('#prev').onclick=()=>goStep(cur-1);
+$('#next').onclick=()=>goStep(cur+1);
+$('#play').onclick=()=>{if(playing){playing=false;}else{playing=true;if(cur===STEPS.length-1&&stepP>=1)goStep(0,true);}updPlay();};
+$('#all').onclick=()=>{goStep(STEPS.length-1);stepP=1;};
+$('#stepbar').addEventListener('click',e=>{const b=e.target.closest('button');if(b)goStep(+b.dataset.i);});
+
+/* ---------------- Vistas 2D ---------------- */
+function cotaH(x1,x2,y,label,k,fs){return `<g class="cota"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" vector-effect="non-scaling-stroke"/><line x1="${x1-k}" y1="${y+k}" x2="${x1+k}" y2="${y-k}" vector-effect="non-scaling-stroke"/><line x1="${x2-k}" y1="${y+k}" x2="${x2+k}" y2="${y-k}" vector-effect="non-scaling-stroke"/><line x1="${x1}" y1="${y-k*1.6}" x2="${x1}" y2="${y+k*1.6}" vector-effect="non-scaling-stroke" opacity=".5"/><line x1="${x2}" y1="${y-k*1.6}" x2="${x2}" y2="${y+k*1.6}" vector-effect="non-scaling-stroke" opacity=".5"/><text x="${(x1+x2)/2}" y="${y-k*1.2}" font-size="${fs}" text-anchor="middle">${label}</text></g>`;}
+function cotaV(y1,y2,x,label,k,fs){const my=(y1+y2)/2;return `<g class="cota"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" vector-effect="non-scaling-stroke"/><line x1="${x-k}" y1="${y1+k}" x2="${x+k}" y2="${y1-k}" vector-effect="non-scaling-stroke"/><line x1="${x-k}" y1="${y2+k}" x2="${x+k}" y2="${y2-k}" vector-effect="non-scaling-stroke"/><line x1="${x-k*1.6}" y1="${y1}" x2="${x+k*1.6}" y2="${y1}" vector-effect="non-scaling-stroke" opacity=".5"/><line x1="${x-k*1.6}" y1="${y2}" x2="${x+k*1.6}" y2="${y2}" vector-effect="non-scaling-stroke" opacity=".5"/><text x="${x-k*1.2}" y="${my}" font-size="${fs}" text-anchor="middle" transform="rotate(-90 ${x-k*1.2} ${my})">${label}</text></g>`;}
+const svgOpen=(vb,label)=>`<svg viewBox="${vb}" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg">`;
+function draw2D(){
+  const d=D;if(!d)return;
+  const ink=cssVar('--ink'),fase=cssVar('--fase'),acc=cssVar('--accent');
+  // Planta
+  {const m=Math.max(d.L,d.W),pad=m*0.17,fs=m*0.038,k=fs*0.28,Y=z=>d.W-z;
+   let s=svgOpen(`${-pad} ${-pad} ${d.L+2*pad} ${d.W+2*pad}`,'Planta acotada');
+   d.rooms.forEach(r=>{s+=`<rect x="${r.x0}" y="${Y(r.z1)}" width="${r.w}" height="${r.d}" style="fill:var(--room)"/>`;
+     s+=`<text x="${r.cx}" y="${Y(r.cz)-fs*0.2}" font-size="${fs*0.85}" text-anchor="middle" fill="${ink}" font-family="Barlow Condensed,sans-serif">${r.nombre}</text><text x="${r.cx}" y="${Y(r.cz)+fs*0.8}" font-size="${fs*0.75}" text-anchor="middle" fill="${ink}" opacity=".7">${nf(r.area,1)} m²</text>`;});
+   d.segs.filter(g=>!g.lintel).forEach(g=>{s+=g.axis==='x'?`<rect x="${g.a0}" y="${Y(g.pos)-d.t/2}" width="${g.a1-g.a0}" height="${d.t}" fill="${ink}"/>`:`<rect x="${g.pos-d.t/2}" y="${Y(g.a1)}" width="${d.t}" height="${g.a1-g.a0}" fill="${ink}"/>`;});
+   d.rooms.forEach(r=>{
+     r.centros.forEach(c=>{const R=fs*0.32;s+=`<circle cx="${c.x}" cy="${Y(c.z)}" r="${R}" fill="none" stroke="${ink}" vector-effect="non-scaling-stroke"/><path d="M${c.x-R*0.7} ${Y(c.z)-R*0.7}L${c.x+R*0.7} ${Y(c.z)+R*0.7}M${c.x+R*0.7} ${Y(c.z)-R*0.7}L${c.x-R*0.7} ${Y(c.z)+R*0.7}" stroke="${ink}" vector-effect="non-scaling-stroke"/>`;});
+     const sp=r.sw.p;s+=`<circle cx="${sp.x}" cy="${Y(sp.z)}" r="${fs*0.2}" fill="${acc}"/>`;
+     r.enchufes.concat(r.horno?[r.horno]:[]).forEach(e=>{const q=fs*0.34;s+=`<rect x="${e.p.x-q/2}" y="${Y(e.p.z)-q/2}" width="${q}" height="${q}" fill="${fase}"/>`;});
+   });
+   s+=`<rect x="${d.tab.x-d.tabDim[0]/2000}" y="${Y(d.t/2+0.12)}" width="${d.tabDim[0]/1000}" height="0.12" fill="${ink}"/>`;
+   s+=`<rect x="${d.med.x-0.125}" y="${Y(-d.t/2)}" width="0.25" height="0.15" fill="none" stroke="${ink}" stroke-dasharray="3 2" vector-effect="non-scaling-stroke"/>`;
+   s+=`<circle cx="${d.elec.x}" cy="${Y(d.elec.z)}" r="${fs*0.18}" fill="#c27a43"/>`;
+   s+=cotaH(0,d.L,d.W+pad*0.62,'L = '+nf(d.L,2)+' m',k,fs);
+   s+=cotaV(0,d.W,-pad*0.55,'A = '+nf(d.W,2)+' m',k,fs);
+   s+=cotaH(0,d.xa,-pad*0.42,nf(d.xa,2),k,fs*0.8)+cotaH(d.xa,d.L,-pad*0.42,nf(d.L-d.xa,2),k,fs*0.8);
+   s+=cotaV(Y(d.W),Y(d.zb),d.L+pad*0.62,nf(d.W-d.zb,2),k,fs*0.8)+cotaV(Y(d.zb),Y(0),d.L+pad*0.62,nf(d.zb,2),k,fs*0.8);
+   s+=`<text x="${d.L/2}" y="${d.W+pad*0.95}" font-size="${fs*0.7}" text-anchor="middle" fill="${ink}" opacity=".6">fachada de acceso</text>`;
+   $('#svgPlanta').innerHTML=s+'</svg>';}
+  // Frente
+  {const dep=1.7,m=Math.max(d.L,d.H+dep),pad=m*0.13,fs=m*0.042,k=fs*0.28,Y=y=>d.H-y,f=d.doors[0];
+   let s=svgOpen(`${-pad} ${-pad} ${d.L+2*pad} ${d.H+dep+2*pad}`,'Elevación frontal acotada');
+   s+=`<rect x="${-pad}" y="${Y(0)}" width="${d.L+2*pad}" height="${dep+pad*0.4}" style="fill:var(--ground)" opacity=".45"/>`;
+   s+=`<rect x="0" y="0" width="${d.L}" height="${d.H}" style="fill:var(--wallfill)" stroke="${ink}" vector-effect="non-scaling-stroke"/>`;
+   s+=`<rect x="0" y="${Y(1.4)}" width="${d.L}" height="0.6" fill="${acc}" opacity=".13"/><text x="${d.L-0.1}" y="${Y(1.4)+fs*0.95}" font-size="${fs*0.7}" text-anchor="end" fill="${acc}">interruptores 0,80–1,40 m</text>`;
+   s+=`<rect x="${f.c-f.w/2}" y="${Y(2.0)}" width="${f.w}" height="2" style="fill:var(--panel)" stroke="${ink}" vector-effect="non-scaling-stroke"/>`;
+   const tw=d.tabDim[0]/1000,th=d.tabDim[1]/1000;
+   s+=`<rect x="${d.tab.x-tw/2}" y="${Y(d.tab.y+th/2)}" width="${tw}" height="${th}" fill="${ink}" opacity=".85"/>`;
+   s+=`<rect x="${d.med.x-0.125}" y="${Y(d.med.y+0.225)}" width="0.25" height="0.45" fill="none" stroke="${ink}" stroke-dasharray="3 2" vector-effect="non-scaling-stroke"/>`;
+   s+=`<line x1="${d.elec.x}" y1="${Y(0)}" x2="${d.elec.x}" y2="${Y(-1.5)}" stroke="#c27a43" stroke-width="3" vector-effect="non-scaling-stroke"/>`;
+   s+=`<line x1="${-pad}" y1="${Y(0)}" x2="${d.L+pad}" y2="${Y(0)}" stroke="${ink}" vector-effect="non-scaling-stroke"/>`;
+   s+=cotaH(0,d.L,-pad*0.45,'L = '+nf(d.L,2)+' m',k,fs);
+   s+=cotaV(0,d.H,-pad*0.5,'H = '+nf(d.H,2)+' m',k,fs);
+   s+=cotaV(Y(0),Y(d.tab.y),d.tab.x+tw/2+pad*0.35,'1,50 tablero',k,fs*0.75);
+   s+=cotaV(Y(0),Y(-1.5),d.elec.x-pad*0.3,'1,50',k,fs*0.75);
+   s+=cotaH(f.c-f.w/2,f.c+f.w/2,Y(2.0)-k*2,'puerta',k,fs*0.65);
+   $('#svgFrente').innerHTML=s+'</svg>';}
+  // Lado
+  {const m=Math.max(d.W,d.H),pad=m*0.15,fs=m*0.045,k=fs*0.28,Y=y=>d.H-y;
+   let s=svgOpen(`${-pad} ${-pad} ${d.W+2*pad} ${d.H+2*pad}`,'Elevación lateral acotada');
+   s+=`<rect x="0" y="0" width="${d.W}" height="${d.H}" style="fill:var(--wallfill)" stroke="${ink}" vector-effect="non-scaling-stroke"/>`;
+   s+=`<line x1="${d.zb}" y1="0" x2="${d.zb}" y2="${d.H}" stroke="${ink}" stroke-dasharray="4 3" opacity=".6" vector-effect="non-scaling-stroke"/>`;
+   s+=`<text x="${d.zb/2}" y="${d.H/2}" font-size="${fs*0.7}" text-anchor="middle" fill="${ink}" opacity=".7">dormitorio</text><text x="${(d.zb+d.W)/2}" y="${d.H/2}" font-size="${fs*0.7}" text-anchor="middle" fill="${ink}" opacity=".7">baño</text>`;
+   s+=`<line x1="${-pad}" y1="${Y(0)}" x2="${d.W+pad}" y2="${Y(0)}" stroke="${ink}" vector-effect="non-scaling-stroke"/>`;
+   s+=cotaH(0,d.W,d.H+pad*0.6,'A = '+nf(d.W,2)+' m',k,fs);
+   s+=cotaV(0,d.H,-pad*0.5,'H = '+nf(d.H,2)+' m',k,fs);
+   s+=`<text x="${d.W/2}" y="${-pad*0.35}" font-size="${fs*0.7}" text-anchor="middle" fill="${ink}" opacity=".6">muro ${d.M.nombre.toLowerCase()} · e = ${nf(d.t*100,0)} cm</text>`;
+   $('#svgLado').innerHTML=s+'</svg>';}
+}
+
+/* ---------------- Lista de materiales ---------------- */
+let ITEMS=[],selId='caja';
+function buildItems(){
+  const d=D,M=d.M,it=[];
+  const add=(cat,o)=>it.push(Object.assign({cat},o));
+  const tm1=d.circuits.reduce((a,c)=>{a[c.curva]=(a[c.curva]||0)+1;return a;},{});
+  add('Empalme y alimentación',{id:'medidor',n:'Caja de empalme con medidor',spec:'Protección ≥ 25 A. La instala la empresa distribuidora.',q:'1 u',dim:[250,450,150],ref:true,model:()=>mkMedidor(),uso:'Punto de conexión con la red; mide la energía.'});
+  add('Empalme y alimentación',{id:'c4',n:'Conductor 4 mm²',spec:'Alimentador medidor → tablero: '+Object.keys(d.cond[4]).map(c=>COLN[c]+' '+nf(d.cond[4][c],1)+' m').join(', '),q:nf(Object.values(d.cond[4]).reduce((a,b)=>a+b,0),1)+' m',dim:[4.2],shape:'wire',ref:true,model:()=>mkCable(4.2,['F','N']),uso:'Sección mínima del alimentador de una vivienda.'});
+  add('Puesta a tierra',{id:'barraT',n:'Electrodo de puesta a tierra',spec:'Barra de cobre 5/8" × 1,5 m con abrazadera',q:'1 u',dim:[16,1500],shape:'cyl',ref:true,model:()=>mkBarraTierra(),uso:'Forma la base de potencial de tierra.'});
+  add('Puesta a tierra',{id:'camar',n:'Camarilla de registro',spec:'Permite inspeccionar y medir la conexión del electrodo',q:'1 u',dim:[200,250,200],ref:true,model:()=>mkCamarilla(),uso:'Acceso para mantenimiento del electrodo.'});
+  add('Puesta a tierra',{id:'cT',n:'Conductor de tierra',spec:'Verde, electrodo → barra de tierra del tablero (sección según RIC N°06; ref. 6 mm²)',q:nf(d.cond[6].T,1)+' m',dim:[5.0],shape:'wire',ref:true,model:()=>mkCable(5,['T']),uso:'Tierra de protección.'});
+  add('Tablero',{id:'tablero',n:'Tablero de distribución '+d.cap+' módulos',spec:d.nMods+' módulos ocupados, puerta y riel DIN',q:'1 u',dim:d.tabDim,ref:true,model:()=>mkTablero(d.cap,d.mods),uso:'Aloja las protecciones de todos los circuitos.'});
+  add('Tablero',{id:'tmg',n:'Interruptor termomagnético general 2P',spec:'Corte omnipolar (fase y neutro). '+(d.nCirc>3?'Obligatorio: más de 3 circuitos.':'Recomendado (exento hasta 3 circuitos).'),q:'1 u',dim:[36,85,70],model:()=>mkDin(2,'tm'),uso:'Desconecta toda la instalación.'});
+  add('Tablero',{id:'tm1',n:'Interruptor termomagnético 1P',spec:Object.keys(tm1).map(k=>tm1[k]+' × '+k).join(', '),q:d.nCirc+' u',dim:[18,85,70],model:()=>mkDin(1,'tm'),uso:'Protege cada circuito contra sobrecarga y cortocircuito.'});
+  add('Tablero',{id:'dif',n:'Protector diferencial 2P 30 mA',spec:'Uno por circuito',q:d.nCirc+' u',dim:[36,85,75],model:()=>mkDin(2,'dif'),uso:'Protege a las personas contra contactos directos e indirectos.'});
+  add('Tablero',{id:'lim',n:'Limitador de sobretensión 2P',spec:'Recomendado para proteger equipos',q:'1 u',dim:[36,85,70],model:()=>mkDin(2,'lim'),uso:'Descarga sobretensiones transitorias (rayos, maniobras).'});
+  add('Tablero',{id:'pil',n:'Luz piloto',spec:(d.nCirc>3?'Obligatoria':'Recomendada')+', protección máx. 10 A',q:'1 u',dim:[18,85,70],model:()=>mkDin(1,'pil'),uso:'Indica presencia de energía en el tablero.'});
+  add('Tablero',{id:'barra',n:'Barra repartidora',spec:'Neutro y tierra; evita cablear de dispositivo a dispositivo',q:'2 u',dim:[100,25,30],ref:true,model:()=>mkBarra(),uso:'Distribuye conexiones sin calentamiento por mal contacto.'});
+  const dk=M.ducto==='corrugado'?'Tubo corrugado flexible':'Tubo PVC conduit';
+  add('Canalización',{id:'d20',n:dk+' Ø20 mm',spec:'Troncales y circuitos de enchufes',q:Math.ceil(d.duct[20]/3)+' tiras ('+nf(d.duct[20],1)+' m)',dim:[20,3000],shape:'cyl',model:()=>mkDucto(20,M.ducto),uso:'Aloja y protege los conductores.'});
+  add('Canalización',{id:'d16',n:dk+' Ø16 mm',spec:'Bajadas a interruptores y entre centros',q:Math.ceil(d.duct[16]/3)+' tiras ('+nf(d.duct[16],1)+' m)',dim:[16,3000],shape:'cyl',model:()=>mkDucto(16,M.ducto),uso:'Tramos cortos de alumbrado.'});
+  add('Cajas',{id:'caja',n:'Caja de empotrar '+M.caja,spec:'Para '+M.nombre.toLowerCase()+'; interruptores y enchufes',q:(d.nSw+d.nOut)+' u',dim:M.cajaDim,model:()=>mkCaja(M.caja,M.cajaDim),uso:'Aloja los módulos de interruptores y enchufes.'});
+  add('Cajas',{id:'cajaD',n:'Caja de derivación '+M.caja,spec:'Centros de iluminación y derivaciones de enchufes (máx. 12 conductores)',q:(d.nCentros+d.nChunks)+' u',dim:M.cajaDim,model:()=>mkCaja(M.caja,M.cajaDim),uso:'Uniones y derivaciones de conductores.'});
+  add('Aparatos',{id:'modsw',n:'Módulo interruptor 9/12',spec:d.rooms.map(r=>r.nombre+': '+r.nC).join(', '),q:d.nCentros+' u',dim:[22,45,40],ref:true,model:()=>mkModulo('sw',FINISH[S.fin]),uso:'Un módulo por centro de iluminación.'});
+  add('Aparatos',{id:'placa',n:'Soporte + placa 3 módulos',spec:'Terminación '+$('#fin').selectedOptions[0].text.toLowerCase(),q:(d.nSw+d.nOut)+' u',dim:[128,82,10],ref:true,model:()=>mkPlaca(['blank','blank','blank'],FINISH[S.fin]),uso:'Terminación visible del punto.'});
+  const nT=d.rooms.filter(r=>r.tipo==='estar').reduce((a,r)=>a+r.enchufes.length,0);
+  add('Aparatos',{id:'t10',n:'Enchufe triple 10 A',spec:'Living-comedor y dormitorio, alvéolos protegidos',q:nT+' u',dim:[66,45,40],ref:true,model:()=>mkPlaca(['t10','t10','t10'],FINISH[S.fin]),uso:'Uso general.'});
+  add('Aparatos',{id:'d16',n:'Enchufe doble 10/16 A',spec:'Cocina, circuito exclusivo',q:'3 u',dim:[44,45,40],ref:true,model:()=>mkPlaca(['d16','blank','d16'],FINISH[S.fin]),uso:'Artefactos de cocina de mayor consumo.'});
+  add('Aparatos',{id:'s10',n:'Enchufe simple 10 A',spec:'Baño, circuito con diferencial ≤ 30 mA',q:'1 u',dim:[22,45,40],ref:true,model:()=>mkPlaca(['blank','t10','blank'],FINISH[S.fin]),uso:'Secador, afeitadora.'});
+  if(S.horno) add('Aparatos',{id:'sch',n:'Enchufe 16 A tipo Schuko',spec:'Horno eléctrico ≥ 1.500 W, circuito propio',q:'1 u',dim:[44,45,45],ref:true,model:()=>mkPlaca(['sch'],FINISH[S.fin]),uso:'Si no hay módulo adecuado a la potencia, conexión fija.'});
+  add('Aparatos',{id:'pl',n:'Portalámpara base recta',spec:'Uno por centro',q:d.nCentros+' u',dim:[100,45],shape:'cyl',ref:true,model:()=>mkPortalampara(),uso:'Sujeta la ampolleta en el centro.'});
+  [1.5,2.5].forEach(sec=>{const c=d.cond[sec];if(!c)return;const tot=Object.values(c).reduce((a,b)=>a+b,0);
+    add('Conductores',{id:'c'+sec,n:'Conductor '+nf(sec,1)+' mm²',spec:(sec===1.5?'Alumbrado. ':'Enchufes. ')+Object.keys(c).map(k=>COLN[k]+' '+nf(c[k],0)+' m').join(', '),q:nf(tot,0)+' m ('+Object.keys(c).reduce((a,k)=>a+Math.ceil(c[k]/100),0)+' rollos de 100 m)',dim:[sec===1.5?2.9:3.5],shape:'wire',ref:true,model:()=>mkCable(sec===1.5?2.9:3.5,Object.keys(c)),uso:sec===1.5?'Circuitos de iluminación (10 A).':'Circuitos de enchufes (16 A).'});});
+  ITEMS=it;
+}
+function renderBom(){
+  let h='',cat='';
+  ITEMS.forEach(i=>{
+    if(i.cat!==cat){cat=i.cat;h+=`<tr class="cat"><td colspan="4">${cat}</td></tr>`;}
+    const dim=i.shape==='cyl'?'Ø'+i.dim[0]+' × '+nf(i.dim[1],0)+' mm':i.shape==='wire'?'Ø ext. '+nf(i.dim[0],1)+' mm':i.dim.join(' × ')+' mm';
+    h+=`<tr class="item${i.id===selId?' sel':''}" data-id="${i.id}" tabindex="0"><td>${i.n}${i.ref?'<span class="ref">ref.</span>':''}</td><td>${i.spec}</td><td class="q">${i.q}</td><td class="dim">${dim}</td></tr>`;
+  });
+  $('#bom').innerHTML=h;
+}
+$('#bom').addEventListener('click',e=>{const tr=e.target.closest('tr.item');if(tr)selectItem(tr.dataset.id);});
+$('#bom').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const tr=e.target.closest('tr.item');if(tr){e.preventDefault();selectItem(tr.dataset.id);}}});
+const mGroup=new THREE.Group();mv.scene.add(mGroup);
+function selectItem(id){
+  const it=ITEMS.find(x=>x.id===id)||ITEMS[0];if(!it)return;selId=it.id;
+  document.querySelectorAll('#bom tr.item').forEach(tr=>tr.classList.toggle('sel',tr.dataset.id===selId));
+  $('#mTitle').textContent=it.n;$('#mSub').textContent=it.uso+' Cantidad: '+it.q+'.';
+  dispose(mGroup);const m=it.model();mGroup.add(m);
+  const bb=new THREE.Box3().setFromObject(mGroup),sz=bb.getSize(V(0,0,0)),c=bb.getCenter(V(0,0,0));
+  const R=Math.max(sz.length(),0.02);mv.orbit.minR=R*0.3;mv.orbit.maxR=R*6;
+  mv.orbit.flyTo({theta:0.45,phi:1.15,r:R*1.3,target:c},true);
+  $('#mNote').textContent=(it.id==='d20'||it.id==='d16'?'El modelo muestra un tramo; la tira mide 3 m. ':'')+(it.ref?'Dimensiones referenciales.':'Dimensiones del documento.');
+  draw2DMat(it);
+}
+function draw2DMat(it){
+  const ink=cssVar('--ink');let views=[];
+  const rectView=(t,w,h,lw,lh,mm)=>{const m=mm||Math.max(w,h),pad=m*0.3,fs=m*0.12,k=fs*0.28,x0=(m-w)/2,y0=(m-h)/2;let s=svgOpen(`${-pad} ${-pad} ${m+2*pad} ${m+2*pad}`,t);s+=`<rect x="${x0}" y="${y0}" width="${w}" height="${h}" style="fill:var(--wallfill)" stroke="${ink}" vector-effect="non-scaling-stroke"/>`;s+=cotaH(x0,x0+w,y0+h+pad*0.5,lw,k,fs)+cotaV(y0,y0+h,x0-pad*0.45,lh,k,fs);return {t,s:s+'</svg>'};};
+  const circView=(t,dmm)=>{const pad=dmm*0.38,fs=dmm*0.13,k=fs*0.28,r=dmm/2;let s=svgOpen(`${-pad} ${-pad} ${dmm+2*pad} ${dmm+2*pad}`,t);s+=`<circle cx="${r}" cy="${r}" r="${r}" style="fill:var(--wallfill)" stroke="${ink}" vector-effect="non-scaling-stroke"/>`;s+=cotaH(0,dmm,dmm+pad*0.55,'Ø '+nf(dmm,dmm<10?1:0),k,fs);return {t,s:s+'</svg>'};};
+  if(it.shape==='cyl'){
+    const [dd,l]=it.dim;const ls=l>600?600:l;
+    const lv=rectView('Longitudinal',ls,dd,nf(l,0)+(l>600?' (esquema)':''),'Ø'+dd);
+    views=[circView('Sección',dd),lv,{t:'Datos',s:`<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg"><text x="50" y="26" font-size="11" text-anchor="middle" fill="${ink}">Ø ${dd} mm</text><text x="50" y="42" font-size="11" text-anchor="middle" fill="${ink}">largo ${nf(l,0)} mm</text></svg>`}];
+  } else if(it.shape==='wire'){
+    const dd=it.dim[0];const c=circView('Sección',dd);
+    const inner=`<circle cx="${dd/2}" cy="${dd/2}" r="${dd*0.3}" fill="#c27a43"/>`;c.s=c.s.replace('</svg>',inner+'</svg>');
+    views=[c,{t:'Colores',s:`<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="12" width="80" height="6" fill="#d62828"/><rect x="10" y="26" width="80" height="6" fill="#f4f4f4" stroke="#999"/><rect x="10" y="40" width="80" height="6" fill="#2e9e44"/></svg>`},{t:'Uso',s:`<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg"><text x="50" y="34" font-size="10" text-anchor="middle" fill="${ink}">${it.n.replace('Conductor ','')}</text></svg>`}];
+  } else {
+    const [w,h,dp]=it.dim;
+    const mm=Math.max(w,h,dp);views=[rectView('Frontal',w,h,nf(w,0),nf(h,0),mm),rectView('Lateral',dp,h,nf(dp,0),nf(h,0),mm),rectView('Superior',w,dp,nf(w,0),nf(dp,0),mm)];
+  }
+  $('#m2d').innerHTML=views.map(v=>`<div class="view2d"><h3>${v.t}</h3>${v.s}</div>`).join('');
+}
+$('#m2dToggle').addEventListener('change',e=>$('#m2d').classList.toggle('off',!e.target.checked));
+
+/* ---------------- Guía ---------------- */
+function renderGuide(){
+  const d=D,m=S.mat,now=(c)=>c?' class="now"':'',tag=c=>c?'<span class="tag">tu caso</span>':'';
+  const cards=[
+   {h:'Cajas según el tipo de muro',rows:[
+     [`503T ${tag(m==='tabique')}`,'Tabiquería. 105×61×38 mm: poca profundidad para tabiques delgados; orejas metálicas que la sujetan a la placa.',m==='tabique'],
+     [`503L ${tag(m==='albanileria')}`,'Albañilería. 106×71×52 mm, grafetas metálicas para fijarla en el muro, autoextinguible.',m==='albanileria'],
+     [`503M ${tag(m==='hormigon')}`,'Hormigón. 106×71×52 mm, policarbonato resistente al hormigonado, relleno de poliestireno expandido que impide el ingreso de la lechada y bordes para amarrarla a la enfierradura.',m==='hormigon']],
+    ric:'Documento: características de las cajas y cableado (RIC N°10, 5.1.2.14)'},
+   {h:'Conductores',rows:[
+     ['Fase','Rojo, azul o negro. También los retornos de interruptor.',false],['Neutro','Blanco.',false],['Tierra','Verde. Obligatorio en enchufes y centros.',true],
+     ['4 mm²','Alimentador de la vivienda (mínimo).',true],['2,5 mm²','Circuitos de enchufes 16 A (práctica habitual).',true],['1,5 mm²','Circuitos de alumbrado 10 A (práctica habitual).',true]],
+    ric:'RIC N°10, 5.2.1, 5.1.2.7, 5.1.2.13'},
+   {h:'Protecciones del tablero',rows:[
+     ['Termomagnético','Cortocircuito o sobrecarga. Protege bienes e instalación. Uno por circuito.',true],
+     ['Diferencial','Contacto directo o indirecto. Protege a las personas. Todos los circuitos; en baños ≤ 30 mA.',true],
+     ['Limitador','Sobretensiones transitorias. Protege los equipos.',true],
+     ['General omnipolar',`Corta fase y neutro a la vez. ${d.nCirc>3?'Obligatorio en tu caso ('+d.nCirc+' circuitos).':'Exento hasta 3 circuitos.'}`,d.nCirc>3]],
+    ric:'RIC N°02, 4.18 · RIC N°10, 4.7, 5.1.3.3'},
+   {h:'Interruptores',rows:[
+     ['9/12','Simple: un centro.',d.rooms.some(r=>r.nC===1)],['9/15','Doble: dos centros independientes.',d.rooms.some(r=>r.nC===2)],['9/32','Triple: hasta tres luminarias.',false],
+     ['9/24','Tres bornes, comando desde dos puntos (escaleras, pasillos).',false],['Multipunto','Cruzamiento: más de dos puntos de comando.',false],
+     ['Dimmer / sensor','Dimmer universal sin neutro; sensor PIR con retardo 30 s a 10 min para ahorro.',false]],
+    ric:'RIC N°10, 5.1.2.4 (0,80–1,40 m), 5.1.2.5 (señal luminosa en zonas de encendido esporádico)'},
+   {h:'Enchufes',rows:[
+     ['10 A doble o triple','Dormitorios, living, comedor: 1 por cada 8 m de perímetro.',true],
+     ['10/16 A','Cocina (mín. 3) y lavadero (mín. 1), circuito exclusivo de 16 A.',true],
+     ['16 A / Schuko','Horno o cocina eléctrica, ≥ 1.500 W, circuito propio; si no hay módulo adecuado, conexión fija.',S.horno],
+     ['Interruptor-enchufe','Solo en kioscos, casetas, porterías y baños pequeños, con diferencial.',false],
+     ['Regla general','Alvéolos protegidos y capacidad del módulo ≥ protección del circuito.',true]],
+    ric:'RIC N°10, 5.2.2 b) c) f), 5.1.2.8, 5.1.2.9, 5.1.2.10'},
+   {h:'Ductos',rows:[
+     [`Corrugado flexible ${tag(m==='tabique')}`,'Tabiquería: se curva dentro del tabique antes de cerrar.',m==='tabique'],
+     [`PVC conduit ${tag(m!=='tabique')}`,'Albañilería y hormigón: embutido en muros y losas.',m!=='tabique'],
+     ['Ø16 / Ø20 mm','16 mm para pocos conductores de 1,5 mm²; 20 mm para troncales y enchufes. Telecomunicaciones: Ø20 mm mínimo (Ley 20.808).',true]],
+    ric:'RIC N°10, 5.1.2.1 · Ley 20.808, art. 4° j)'},
+   {h:'Equipos al exterior',rows:[
+     ['IP44','Bajo alero, fuera del alcance de la lluvia.',false],['IP54','Expuestos a la intemperie o lluvia directa.',false],['Protección UV','Si el aparato queda expuesto al sol.',false]],
+    ric:'RIC N°10, 5.2.4 y 5.2.5'},
+   {h:'Puesta a tierra',rows:[
+     ['Tierra de servicio','Pone a tierra el neutro del empalme o del transformador.',true],
+     ['Tierra de protección','Pone a tierra las piezas conductoras que pueden energizarse ante una falla.',true],
+     ['Electrodo','Simple, múltiples conectados, malla o placa, según terreno y proyecto.',true]],
+    ric:'RIC N°06, 4.5.1, 4.5.6, 4.5.7'}
+  ];
+  $('#guide').innerHTML=cards.map(c=>`<article class="gcard"><h3>${c.h}</h3><table>${c.rows.map(r=>`<tr${now(r[2]&&(c.h.startsWith('Cajas')||c.h==='Ductos'))}><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table><div class="ric">${c.ric}</div></article>`).join('');
+}
+
+/* ---------------- Panel lateral ---------------- */
+function renderSide(){
+  const d=D;
+  $('#matHint').textContent=d.M.hint;
+  $('#stats').innerHTML=[[nf(d.L*d.W,1)+' m²','superficie'],[d.nCirc,'circuitos'],[d.nCentros,'centros'],[d.nOut,'enchufes'],[nf(Object.values(d.cond).reduce((a,c)=>a+Object.values(c).reduce((x,y)=>x+y,0),0),0)+' m','conductor'],[Math.ceil(d.duct[16]/3)+Math.ceil(d.duct[20]/3),'tiras de ducto']].map(s=>`<div class="stat"><b>${s[0]}</b><span>${s[1]}</span></div>`).join('');
+  const ch=[
+    ['y','Empalme ≥ 25 A y alimentador ≥ 4 mm² (5.2.1)'],
+    ['y','Todos los circuitos con diferencial y termomagnético (5.2.1 c)'],
+    ['y','Circuito exclusivo de enchufes de cocina 16 A (5.2.1 d)'],
+    [S.horno?'y':'n',S.horno?'Circuito independiente para horno ≥ 16 A (5.2.1 e)':'Horno eléctrico: no aplica'],
+    ['y','Centros: '+d.rooms.map(r=>r.nombre.split('-')[0]+' '+r.nC).join(', ')+' (5.2.2 a)'],
+    ['y','Enchufes por perímetro y cocina ≥ 3 (5.2.2 b, c)'],
+    [d.nCirc>3?'y':'n',d.nCirc>3?'Interruptor general omnipolar y luz piloto obligatorios (>3 circuitos)':'General omnipolar y luz piloto: exentos (≤3 circuitos), incluidos igual'],
+    [d.maxBox<=12?'y':'w','Máx. '+d.maxBox+' conductores por caja de derivación (5.1.2.14)'],
+    ['y','Tablero a 1,50 m, dentro de 0,45–2,0 m (RIC 02, 6.1.22)'],
+    ['y','Interruptores a 1,10 m, dentro de 0,80–1,40 m (5.1.2.4)'],
+    ...d.circuits.map(c=>[c.W<=c.In*220?'y':'w',`${c.id}: ${nf(c.W,0)} W de ${nf(c.In*220,0)} W`])
+  ];
+  $('#checks').innerHTML=ch.map(c=>`<div class="${c[0]}"><span></span>${c[1]}</div>`).join('').replace(/<span><\/span>/g,'');
+}
+
+/* ---------------- Controles ---------------- */
+function bindRange(id,key){
+  const r=$('#'+id),n=$('#'+id+'n');r.value=S[key];n.value=S[key];
+  r.addEventListener('input',()=>{S[key]=+r.value;n.value=r.value;schedule();});
+  n.addEventListener('change',()=>{const v=clamp(+n.value||S[key],+r.min,+r.max);S[key]=v;n.value=v;r.value=v;schedule();});
+}
+bindRange('L','L');bindRange('W','W');bindRange('H','H');
+$('#mat').value=S.mat;$('#fin').value=S.fin;
+$('#mat').addEventListener('change',e=>{S.mat=e.target.value;schedule(true);});
+$('#fin').addEventListener('change',e=>{S.fin=e.target.value;schedule(true);});
+$('#horno').addEventListener('change',e=>{S.horno=e.target.checked;schedule(true);});
+$('#show2d').addEventListener('change',e=>{S.show2d=e.target.checked;$('#vwrap').classList.toggle('no2d',!S.show2d);});
+$('#transp').addEventListener('change',e=>{S.transp=e.target.checked;buildHouse();});
+$('#techo').addEventListener('change',e=>{S.techo=e.target.checked;buildHouse();});
+$('#labels').addEventListener('change',e=>{S.labels=e.target.checked;buildHouse();});
+let timer=null;
+function schedule(now){clearTimeout(timer);timer=setTimeout(rebuild,now?0:140);}
+function rebuild(){
+  D=compute();buildHouse();buildInstall();draw2D();buildItems();renderBom();
+  if(!ITEMS.find(i=>i.id===selId))selId='caja';selectItem(selId);
+  renderGuide();renderSide();renderStep();
+}
+
+/* ---------------- Bucle ---------------- */
+const easeBack=x=>{const c1=1.4,c3=c1+1;return x<=0?0:x>=1?1:1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
+const progEl=$('#progbar');let last=performance.now(),T=0,lampState=null;const tmpM=new THREE.Matrix4();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;T+=dt;
+  if(stepP<1){stepP=Math.min(1,stepP+dt/STEP_DUR);if(stepP>=1)holdT=0;}
+  else if(playing){holdT+=dt;if(holdT>1.3){if(cur<STEPS.length-1)goStep(cur+1,true);else{playing=false;updPlay();}}}
+  progEl.style.width=((cur+stepP)/STEPS.length*100)+'%';
+  for(const a of anim){
+    const p=a.step<cur?1:a.step>cur?-1:stepP;
+    if(a.kind==='pop'){const l=p<0?0:clamp((p-a.delay)/0.22,0,1);a.obj.visible=l>0;if(l>0)a.obj.scale.copy(a.obj.userData.base).multiplyScalar(Math.max(1e-4,easeBack(l)));}
+    else{const f=p<0?0:clamp((p-a.d0)/Math.max(1e-4,a.d1-a.d0),0,1);a.obj.visible=f>0;if(f>0){const L=a.len*f;a.obj.scale.set(a.r,L,a.r);a.obj.position.copy(a.a).addScaledVector(a.dir,L/2);}}
+  }
+  const ductOp=cur>=5?0.28:0.95;MAT.ductCorr.opacity=ductOp;MAT.ductPvc.opacity=ductOp;MAT.ductCorr.depthWrite=MAT.ductPvc.depthWrite=ductOp>0.9;
+  const on=!tripped&&(cur>=9||(cur===7&&stepP>0.85));
+  if(on!==lampState){lampState=on;MAT.bulb.emissiveIntensity=on?1.6:0;pLights.forEach(l=>l.intensity=on?0.55:0);}
+  labelSprites.forEach(l=>l.visible=cur>=3);
+  MAT.pilot.emissiveIntensity=cur>=9?1.5:0;
+  if(tabRefs)tabRefs.levers.forEach(l=>{l.position.y+=((tripped?-0.012:0.006)-l.position.y)*0.3;});
+  if(particles){const act=cur>=9&&!tripped&&!reduceMotion;particles.visible=act;if(act){let i=0;flows.forEach(f=>{const len=f.cum[f.cum.length-1];for(let k=0;k<5;k++){const s=((T*0.9)+k*len/5)%len;tmpM.makeTranslation(...pointAt(f,s).toArray());particles.setMatrixAt(i++,tmpM);}});particles.instanceMatrix.needsUpdate=true;}}
+  main.orbit.update(dt);main.renderer.render(main.scene,main.cam);
+  mGroup.rotation.y+=reduceMotion||mv.orbit.ptr.size?0:dt*0.25;
+  mv.orbit.update(dt);mv.renderer.render(mv.scene,mv.cam);
+  requestAnimationFrame(loop);
+}
+rebuild();
+main.orbit.flyTo({theta:-0.72,phi:0.95,r:Math.max(D.L,D.W)*1.35+2.5,target:V(D.L/2,D.H*0.3,D.W/2)},true);
+goStep(0);
+requestAnimationFrame(loop);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{buildHouse();});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConstruYG - Profesionales de la Construcción</title>
+    <style>
+        /* Estilos base */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f8f9fa; color: #333; }
+        
+        /* Cabecera superior */
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background-color: #ffffff; border-bottom: 1px solid #e0e0e0; }
+        .logo { font-size: 28px; font-weight: 900; color: #004080; letter-spacing: -1px; }
+        .logo span { color: #d9230f; } 
+        
+        /* Buscador */
+        .search-bar { flex-grow: 1; margin: 0 40px; display: flex; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .search-bar input { width: 100%; padding: 12px 15px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; font-size: 14px; }
+        .search-bar button { padding: 12px 25px; background-color: #333; color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-weight: bold; transition: background 0.3s;}
+        .search-bar button:hover { background-color: #555; }
+        
+        /* Opciones de usuario */
+        .user-actions { display: flex; gap: 20px; font-size: 14px; font-weight: 500; align-items: center; }
+        .user-actions div { cursor: pointer; }
+        .user-actions div:hover { color: #d9230f; }
+        
+        /* Barra de navegación */
+        .navbar { background-color: #004080; padding: 12px 5%; display: flex; gap: 25px; font-size: 14px; }
+        .navbar a { color: white; text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .navbar a:hover { text-decoration: underline; }
+        
+        /* Sección Hero (Banners) */
+        .hero { display: flex; padding: 30px 5%; gap: 20px; }
+        .hero-main { flex: 2; background-color: #0059b3; color: white; padding: 50px 40px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .hero-main h2 { font-size: 20px; margin-bottom: 10px; color: #ffcc00; }
+        .hero-main h1 { font-size: 48px; margin-bottom: 15px; line-height: 1.1; }
+        
+        .hero-side { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .promo-box { padding: 30px 20px; border-radius: 8px; font-weight: 800; font-size: 22px; text-align: center; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; }
+        .promo-volumen { background-color: #ffcc00; color: #111; }
+        .promo-outlet { background-color: #d9230f; color: white; }
+        
+        /* Categorías destacadas */
+        .categories-section { padding: 40px 5%; background-color: #ffffff; text-align: center; margin-bottom: 40px; }
+        .categories-section h3 { font-size: 24px; margin-bottom: 30px; color: #333; }
+        .categories-grid { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+        .category-item { width: 120px; cursor: pointer; transition: transform 0.2s; }
+        .category-item:hover { transform: translateY(-5px); }
+        .category-circle { width: 90px; height: 90px; background-color: #f0f4f8; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 32px; border: 2px solid transparent; transition: border 0.3s; }
+        .category-item:hover .category-circle { border-color: #004080; }
+        .category-item p { font-size: 14px; font-weight: 600; color: #555; }
+        
+        /* Footer */
+        .footer { background-color: #222; color: #aaa; text-align: center; padding: 25px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <!-- Cabecera -->
+    <header class="header-top">
+        <div class="logo">Constru<span>YG</span></div>
+        <div class="search-bar">
+            <input type="text" placeholder="Buscar productos, marcas o SKU...">
+            <button>Buscar</button>
+        </div>
+        <div class="user-actions">
+            <div>📍 Ingresa tu ubicación</div>
+            <div>👤 Hola, Inicia sesión</div>
+            <div>🛒 Carro (0)</div>
+        </div>
+    </header>
+
+    <!-- Navegación -->
+    <nav class="navbar">
+        <a href="#">☰ Categorías</a>
+        <a href="#">Materiales de Construcción</a>
+        <a href="#">Herramientas</a>
+        <a href="#">Pisos y Revestimientos</a>
+        <a href="#">Baño y Cocina</a>
+        <a href="#">Terraza</a>
+    </nav>
+
+    <!-- Hero / Banners Promocionales -->
+    <section class="hero">
+        <div class="hero-main">
+            <h2>ESPECIAL RENOVACIÓN</h2>
+            <h1>HASTA 30%<br>DE AHORRO</h1>
+            <p>En cerámicas, pisos flotantes y herramientas seleccionadas para tu proyecto.</p>
+        </div>
+        <div class="hero-side">
+            <div class="promo-box promo-volumen">PRECIO X VOLUMEN</div>
+            <div class="promo-box promo-outlet">OUTLET YG<br>HASTA 70% DCTO</div>
+        </div>
+    </section>
+
+    <!-- Categorías Destacadas -->
+    <section class="categories-section">
+        <h3>Categorías destacadas del mes</h3>
+        <div class="categories-grid">
+            <div class="category-item">
+                <div class="category-circle">🔨</div>
+                <p>Herramientas</p>
+            </div>
+            <div class="category-item">
+                <div class="category-circle">🧱</div>
+                <p>Obra Gruesa</p>
+            </div>
+            <div class="category-item">
+                <div class="category-circle">🚿</div>
+                <p>Baño</p>
+            </div>
+            <div class="category-item">
+                <div class="category-circle">💡</div>
+                <p>Electricidad</p>
+            </div>
+            <div class="category-item">
+                <div class="category-circle">🎨</div>
+                <p>Pinturas</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pie de página -->
+    <footer class="footer">
+        <p>&copy; 2026 ConstruYG. Todos los derechos reservados. Profesionales de la construcción.</p>
+    </footer>
+
+</body>
+</html>
